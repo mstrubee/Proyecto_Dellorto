@@ -2,156 +2,427 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Evaluador de Restaurante</title>
+  <title>Rectificación</title>
+  <!-- Librerías para exportar a PDF y Excel -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.2/xlsx.full.min.js"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
-      margin: 20px;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 20px;
+      margin: 0;
+      padding: 10px;
     }
-    .col {
-      flex: 1;
-      min-width: 280px;
+    h2 {
+      margin-bottom: 5px;
     }
-    label, input {
-      display: block;
+    /* Área para los datos del proyecto */
+    .project-info {
+      font-size: 1.2em;
       margin-bottom: 10px;
     }
-    input[type="number"] {
-      width: 100%;
+    input.project-input {
+      font-size: 1em;
+      width: 300px;
+      padding: 4px;
+      margin-bottom: 5px;
+      display: block;
     }
     table {
-      margin-top: 20px;
       width: 100%;
       border-collapse: collapse;
+      table-layout: auto;
     }
-    td, th {
-      padding: 8px;
-      border: 1px solid #ccc;
-      text-align: right;
+    th, td {
+      border: 1px solid #ddd;
+      padding: 4px; /* Filas más compactas */
+      text-align: left;
+      white-space: nowrap;
+      font-size: 0.9em;
+    }
+    th {
+      background-color: #f4f4f4;
+    }
+    input, button, select {
+      margin: 2px;
+      padding: 4px;
+      font-size: 0.9em;
+    }
+    .btn-eliminar {
+      background-color: red;
+      color: white;
+      border: none;
+      padding: 4px;
+      cursor: pointer;
+      font-size: 0.9em;
+    }
+    /* Estilos para el modal de exportación */
+    #modalGuardar {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      z-index: 1000;
+    }
+    #modalGuardar .modal-content {
+      background: #fff;
+      padding: 20px;
+      width: 300px;
+      margin: 100px auto;
+      text-align: center;
+    }
+    #modalGuardar .modal-content button {
+      margin: 5px;
+      padding: 6px;
     }
   </style>
 </head>
 <body>
+  <h2>Rectificación</h2>
+  <!-- Área para ingresar datos del proyecto -->
+  <div class="project-info">
+    <input type="text" id="nombreProyecto" class="project-input" 
+           value="nombre del proyecto" 
+           onfocus="if(this.value=='nombre del proyecto') this.value='';" 
+           onblur="if(this.value=='') this.value='nombre del proyecto';">
+    <input type="text" id="codigoProyecto" class="project-input" 
+           value="codigo del proyecto" 
+           onfocus="if(this.value=='codigo del proyecto') this.value='';" 
+           onblur="if(this.value=='') this.value='codigo del proyecto';">
+  </div>
 
-<div class="col">
-  <h2>Evaluador de Restaurante</h2>
+  <table>
+    <tr>
+      <th>Eliminar</th>
+      <th>Elemento</th>
+      <th>Tipo</th>
+      <th>Nombre</th>
+      <th>Cantidad</th>
+      <th>Ancho (mm)</th>
+      <th>Alto (mm)</th>
+      <th>Asentamiento (mm)</th>
+      <th>m²</th>
+      <th>mL</th>
+    </tr>
+    <tbody id="tablaRectificacion"></tbody>
+  </table>
 
-  <label>Ventas mensuales (en millones):
-    <input type="number" id="ventasBase" value="50">
-  </label>
-  <p><strong>Ventas con IVA:</strong> $<span id="ventasIVA">0</span></p>
-  <p><strong>Ventas netas:</strong> $<span id="netoMostrar">0</span></p>
+  <button onclick="agregarFila()">Agregar Fila</button>
+  <button onclick="mostrarOpcionesGuardar()">Guardar Rectificación</button>
 
-  <label>Inversión inicial (en millones):
-    <input type="number" id="inversion" value="10">
-  </label>
-  <p><strong>Inversión inicial:</strong> $<span id="inversionMonto">0</span></p>
+  <!-- Modal para exportación -->
+  <div id="modalGuardar">
+    <div class="modal-content">
+      <h3>Guardar como:</h3>
+      <button onclick="exportarPDF()">PDF</button>
+      <button onclick="exportarExcel()">Excel</button>
+      <button onclick="exportarHTML()">HTML</button>
+      <button onclick="cerrarModalGuardar()">Cancelar</button>
+    </div>
+  </div>
 
-  <h3>Porcentajes de gasto</h3>
-  <label>Insumos y producción (%): <input type="number" id="insumos" value="38.5"></label>
-  <p>Valor: $<span id="gastoInsumos">0</span></p>
+  <script>
+    // Se cargan los datos de localStorage o se inicializan arrays vacíos.
+    let productos = JSON.parse(localStorage.getItem("productos")) || [];
+    let rectificaciones = JSON.parse(localStorage.getItem("rectificaciones")) || [];
 
-  <label>Remuneraciones (%): <input type="number" id="remuneraciones" value="20"></label>
-  <p>Valor: $<span id="gastoRem">0</span></p>
+    // Opciones para el desplegable "Tipo"
+    const opcionesTipo = [
+      "Corredera",
+      "Guillotina",
+      "Proyectante",
+      "Oscilobatiente",
+      "Ventana Fija",
+      "Baranda",
+      "Puerta/Ventana",
+      "Abatir Interior",
+      "Abatir Exterior",
+      "Ventana Pleagable",
+      "Cortina Cristal",
+      "Baranda Banquina",
+      "Baranda Botones (perforado)",
+      "Lucarnas",
+      "Shower",
+      "Espejo",
+      "Mampara",
+      "Puerta Protex"
+    ];
 
-  <label>Dieta Directorio (%): <input type="number" id="dieta" value="20"></label>
-  <p>Valor: $<span id="gastoDieta">0</span></p>
+    function inicializarRectificacion() {
+      // Se obtienen las categorías existentes en productos y se añade "Ventana" si no está presente.
+      let categorias = [...new Set(productos.map(p => p.categoria))];
+      if (!categorias.includes("Ventana")) {
+        categorias.push("Ventana");
+      }
+      // Se ordenan alfabéticamente
+      categorias.sort((a, b) => a.localeCompare(b));
+      actualizarTablaRectificacion(categorias);
+    }
 
-  <label>Arriendo (%): <input type="number" id="arriendo" value="10"></label>
-  <p>Valor: $<span id="gastoArriendo">0</span></p>
+    function actualizarTablaRectificacion(categorias) {
+      let tabla = document.getElementById("tablaRectificacion");
+      tabla.innerHTML = "";
+      
+      rectificaciones.forEach((rectificacion, index) => {
+        let fila = document.createElement("tr");
 
-  <label>Servicios (%): <input type="number" id="servicios" value="3"></label>
-  <p>Valor: $<span id="gastoServicios">0</span></p>
+        // Botón de eliminación
+        let celdaEliminar = document.createElement("td");
+        let botonEliminar = document.createElement("button");
+        botonEliminar.textContent = "🗑️";
+        botonEliminar.className = "btn-eliminar";
+        botonEliminar.onclick = () => eliminarFila(index);
+        celdaEliminar.appendChild(botonEliminar);
+        fila.appendChild(celdaEliminar);
 
-  <h3>Estacionalidad mensual (%)</h3>
-  <div id="meses"></div>
-</div>
+        // Columna "Elemento": desplegable con opción por defecto "Seleccione" en rojo.
+        let celdaElemento = document.createElement("td");
+        let selectElemento = document.createElement("select");
+        let defaultOptionElem = document.createElement("option");
+        defaultOptionElem.value = "";
+        defaultOptionElem.textContent = "Seleccione";
+        defaultOptionElem.style.color = "red";
+        defaultOptionElem.disabled = true;
+        if (!rectificaciones[index].elemento) {
+          defaultOptionElem.selected = true;
+        }
+        selectElemento.appendChild(defaultOptionElem);
+        categorias.forEach(categoria => {
+          let opcion = document.createElement("option");
+          opcion.value = categoria;
+          opcion.textContent = categoria;
+          if (categoria === rectificaciones[index].elemento) {
+            opcion.selected = true;
+          }
+          selectElemento.appendChild(opcion);
+        });
+        selectElemento.onchange = () => {
+          rectificaciones[index].elemento = selectElemento.value;
+          guardarRectificacion();
+        };
+        celdaElemento.appendChild(selectElemento);
+        fila.appendChild(celdaElemento);
 
-<div class="col">
-  <h3>Resultados</h3>
-  <div id="resultados"></div>
-</div>
+        // Columna "Tipo": desplegable con opción por defecto "Seleccione" en rojo y opciones ordenadas alfabéticamente.
+        let celdaTipo = document.createElement("td");
+        let selectTipo = document.createElement("select");
+        let defaultOption = document.createElement("option");
+        defaultOption.value = "";
+        defaultOption.textContent = "Seleccione";
+        defaultOption.style.color = "red";
+        defaultOption.disabled = true;
+        if (!rectificaciones[index].tipo) {
+          defaultOption.selected = true;
+        }
+        selectTipo.appendChild(defaultOption);
+        let sortedTipos = opcionesTipo.slice().sort((a, b) => a.localeCompare(b));
+        sortedTipos.forEach(tipoOption => {
+          let opt = document.createElement("option");
+          opt.value = tipoOption;
+          opt.textContent = tipoOption;
+          if (tipoOption === rectificaciones[index].tipo) {
+            opt.selected = true;
+          }
+          selectTipo.appendChild(opt);
+        });
+        selectTipo.onchange = () => {
+          rectificaciones[index].tipo = selectTipo.value;
+          guardarRectificacion();
+        };
+        celdaTipo.appendChild(selectTipo);
+        fila.appendChild(celdaTipo);
 
-<script>
-const mesesNombres = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
-const estacionalidad = [84, 50, 92, 94, 84, 95, 99, 100, 60, 98, 92, 93]; // Estacionalidad por mes
-let mesesDiv = document.getElementById("meses");
+        // Columna "Nombre"
+        fila.appendChild(crearCeldaInput("text", rectificacion.nombre, index, "nombre"));
+        // Columna "Cantidad"
+        fila.appendChild(crearCeldaInput("number", rectificacion.cantidad, index, "cantidad"));
+        // Columna "Ancho (mm)"
+        fila.appendChild(crearCeldaInput("number", rectificacion.ancho, index, "ancho"));
+        // Columna "Alto (mm)"
+        fila.appendChild(crearCeldaInput("number", rectificacion.alto, index, "alto"));
+        // Columna "Asentamiento (mm)"
+        fila.appendChild(crearCeldaInput("number", rectificacion.asentamiento, index, "asentamiento"));
 
-mesesNombres.forEach((mes, i) => {
-  let input = document.createElement("input");
-  input.type = "number";
-  input.id = "mes" + i;
-  input.value = estacionalidad[i]; // Establecer el valor predeterminado según los porcentajes de estacionalidad
-  input.style.marginRight = "10px";
-  input.addEventListener("input", calcular);
-  mesesDiv.appendChild(document.createTextNode(mes + ": "));
-  mesesDiv.appendChild(input);
-});
+        // Columna "m²": (ancho * (alto + asentamiento)) / 1,000,000
+        let celdaM2 = document.createElement("td");
+        celdaM2.id = `m2-${index}`;
+        celdaM2.textContent = calcularM2(rectificacion.ancho, rectificacion.alto, rectificacion.asentamiento) + " m²";
+        fila.appendChild(celdaM2);
 
-["ventasBase", "inversion", "insumos", "remuneraciones", "dieta", "arriendo", "servicios"].forEach(id =>
-  document.getElementById(id).addEventListener("input", calcular)
-);
+        // Columna "mL": ((ancho * 2) + ((alto + asentamiento) * 2)) / 1,000
+        let celdaML = document.createElement("td");
+        celdaML.id = `ml-${index}`;
+        celdaML.textContent = calcularML(rectificacion.ancho, rectificacion.alto, rectificacion.asentamiento) + " m";
+        fila.appendChild(celdaML);
 
-function calcular() {
-  const millonesVentas = parseFloat(document.getElementById("ventasBase").value) || 0;
-  const ventasIVA = millonesVentas * 1_000_000;
-  const millonesInversion = parseFloat(document.getElementById("inversion").value) || 0;
-  const inversion = millonesInversion * 1_000_000;
-  const neto = ventasIVA / 1.19;
+        tabla.appendChild(fila);
+      });
+    }
 
-  document.getElementById("ventasIVA").textContent = ventasIVA.toLocaleString();
-  document.getElementById("netoMostrar").textContent = neto.toFixed(0).toLocaleString();
-  document.getElementById("inversionMonto").textContent = inversion.toLocaleString();
+    // Función genérica para crear una celda con input.
+    function crearCeldaInput(tipo, valor, indice, propiedad) {
+      let celda = document.createElement("td");
+      let input = document.createElement("input");
+      input.type = tipo;
+      input.value = (valor !== undefined && valor !== null) ? valor : "";
+      
+      // Para "ancho", "alto" y "asentamiento": si el valor es "0", se borra al hacer foco.
+      if (["ancho", "alto", "asentamiento"].includes(propiedad)) {
+        input.addEventListener("focus", function() {
+          if (input.value === "0") { input.value = ""; }
+        });
+      }
+      
+      input.oninput = function(event) {
+        if (["cantidad", "ancho", "alto", "asentamiento"].includes(propiedad)) {
+          rectificaciones[indice][propiedad] = parseFloat(event.target.value) || 0;
+          actualizarCalculosSinRedibujar(indice);
+        } else {
+          rectificaciones[indice][propiedad] = event.target.value;
+        }
+      };
+      celda.appendChild(input);
+      return celda;
+    }
 
-  const p_insumos = parseFloat(document.getElementById("insumos").value) / 100;
-  const p_rem = parseFloat(document.getElementById("remuneraciones").value) / 100;
-  const p_dieta = parseFloat(document.getElementById("dieta").value) / 100;
-  const p_arriendo = parseFloat(document.getElementById("arriendo").value) / 100;
-  const p_serv = parseFloat(document.getElementById("servicios").value) / 100;
+    // Función para calcular m²: (ancho * (alto + asentamiento)) / 1,000,000
+    function calcularM2(ancho, alto, asentamiento) {
+      let a = parseFloat(ancho) || 0;
+      let h = parseFloat(alto) || 0;
+      let asen = parseFloat(asentamiento) || 0;
+      return ((a * (h + asen)) / 1000000).toFixed(2);
+    }
 
-  const g_insumos = neto * p_insumos;
-  const g_rem = neto * p_rem;
-  const g_dieta = neto * p_dieta;
-  const g_arriendo = neto * p_arriendo;
-  const g_serv = neto * p_serv;
+    // Función para calcular mL: ((ancho * 2) + ((alto + asentamiento) * 2)) / 1,000
+    function calcularML(ancho, alto, asentamiento) {
+      let a = parseFloat(ancho) || 0;
+      let h = parseFloat(alto) || 0;
+      let asen = parseFloat(asentamiento) || 0;
+      return (((a * 2) + ((h + asen) * 2)) / 1000).toFixed(2);
+    }
 
-  document.getElementById("gastoInsumos").textContent = g_insumos.toFixed(0).toLocaleString();
-  document.getElementById("gastoRem").textContent = g_rem.toFixed(0).toLocaleString();
-  document.getElementById("gastoDieta").textContent = g_dieta.toFixed(0).toLocaleString();
-  document.getElementById("gastoArriendo").textContent = g_arriendo.toFixed(0).toLocaleString();
-  document.getElementById("gastoServicios").textContent = g_serv.toFixed(0).toLocaleString();
+    // Actualiza los cálculos sin redibujar toda la tabla.
+    function actualizarCalculosSinRedibujar(index) {
+      let rectificacion = rectificaciones[index];
+      rectificacion.m2 = calcularM2(rectificacion.ancho, rectificacion.alto, rectificacion.asentamiento);
+      rectificacion.ml = calcularML(rectificacion.ancho, rectificacion.alto, rectificacion.asentamiento);
+      let celdaM2 = document.getElementById(`m2-${index}`);
+      let celdaML = document.getElementById(`ml-${index}`);
+      if (celdaM2) celdaM2.textContent = rectificacion.m2 + " m²";
+      if (celdaML) celdaML.textContent = rectificacion.ml + " m";
+      guardarRectificacion();
+    }
 
-  const gastos = g_insumos + g_rem + g_dieta + g_arriendo + g_serv;
-  const flujoMensual = neto - gastos;
+    // Agrega una nueva fila con valores predeterminados.
+    function agregarFila() {
+      rectificaciones.push({
+        elemento: "",
+        tipo: "",
+        nombre: "",
+        cantidad: 1,
+        ancho: 0,
+        alto: 0,
+        asentamiento: 0,
+        m2: "0.00",
+        ml: "0.00"
+      });
+      guardarRectificacion();
+      inicializarRectificacion();
+    }
 
-  let totalAnual = 0;
-  let tabla = `<table><tr><th>Mes</th><th>%</th><th>Flujo</th></tr>`;
-  for (let i = 0; i < 12; i++) {
-    let est = parseFloat(document.getElementById("mes" + i).value) / 100;
-    let flujoMes = flujoMensual * est;
-    totalAnual += flujoMes;
-    tabla += `<tr><td>${mesesNombres[i]}</td><td>${(est*100).toFixed(1)}%</td><td>$${flujoMes.toFixed(0).toLocaleString()}</td></tr>`;
-  }
-  tabla += "</table>";
+    // Elimina la fila indicada.
+    function eliminarFila(index) {
+      rectificaciones.splice(index, 1);
+      guardarRectificacion();
+      inicializarRectificacion();
+    }
 
-  const ROI = (totalAnual / inversion) * 100;
-  const paybackMeses = inversion / flujoMensual;
+    // Guarda el array "rectificaciones" en localStorage.
+    function guardarRectificacion() {
+      localStorage.setItem("rectificaciones", JSON.stringify(rectificaciones));
+    }
 
-  document.getElementById("resultados").innerHTML = `
-    <p><strong>Flujo mensual promedio:</strong> $${flujoMensual.toFixed(0).toLocaleString()}</p>
-    ${tabla}
-    <p><strong>Flujo anual ajustado:</strong> $${totalAnual.toFixed(0).toLocaleString()}</p>
-    <p><strong>Retorno sobre inversión (ROI):</strong> ${ROI.toFixed(2)}%</p>
-    <p><strong>Payback (meses):</strong> ${paybackMeses.toFixed(1)}</p>
-  `;
-}
+    // Funciones para mostrar y ocultar el modal de exportación.
+    function mostrarOpcionesGuardar() {
+      document.getElementById("modalGuardar").style.display = "block";
+    }
+    function cerrarModalGuardar() {
+      document.getElementById("modalGuardar").style.display = "none";
+    }
 
-window.addEventListener("DOMContentLoaded", calcular);
-</script>
+    // Exporta a PDF usando jsPDF y autoTable.
+    function exportarPDF() {
+      cerrarModalGuardar();
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF('l', 'pt', 'a4');
+      doc.text("Rectificaciones", 40, 40);
+      const columns = ["Elemento", "Tipo", "Nombre", "Cantidad", "Ancho", "Alto", "Asentamiento", "m²", "mL"];
+      const rows = rectificaciones.map(item => [
+        item.elemento || "Seleccione",
+        item.tipo || "Seleccione",
+        item.nombre,
+        item.cantidad,
+        item.ancho,
+        item.alto,
+        item.asentamiento,
+        item.m2,
+        item.ml
+      ]);
+      doc.autoTable({
+        head: [columns],
+        body: rows,
+        startY: 60
+      });
+      doc.save("rectificaciones.pdf");
+    }
 
+    // Exporta a Excel usando SheetJS.
+    function exportarExcel() {
+      cerrarModalGuardar();
+      const wb = XLSX.utils.book_new();
+      const ws_data = [["Elemento", "Tipo", "Nombre", "Cantidad", "Ancho", "Alto", "Asentamiento", "m²", "mL"]];
+      rectificaciones.forEach(item => {
+        ws_data.push([
+          item.elemento || "Seleccione",
+          item.tipo || "Seleccione",
+          item.nombre,
+          item.cantidad,
+          item.ancho,
+          item.alto,
+          item.asentamiento,
+          item.m2,
+          item.ml
+        ]);
+      });
+      const ws = XLSX.utils.aoa_to_sheet(ws_data);
+      XLSX.utils.book_append_sheet(wb, ws, "Rectificaciones");
+      XLSX.writeFile(wb, "rectificaciones.xlsx");
+    }
+
+    // Exporta el código HTML completo actual a un archivo, sincronizando los valores de los inputs.
+    function exportarHTML() {
+      cerrarModalGuardar();
+      // Sincronización: Actualiza el atributo "value" de cada <input> con su valor actual.
+      document.querySelectorAll("input").forEach(input => {
+        input.setAttribute("value", input.value);
+      });
+      let htmlCode = document.documentElement.outerHTML;
+      let blob = new Blob([htmlCode], { type: "text/html" });
+      let url = URL.createObjectURL(blob);
+      let a = document.createElement("a");
+      a.href = url;
+      a.download = "rectificacion.html";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    // Inicializa la tabla al cargar la página.
+    inicializarRectificacion();
+  </script>
 </body>
 </html>
