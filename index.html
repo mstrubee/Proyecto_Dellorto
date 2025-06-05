@@ -1,4 +1,6 @@
-<html lang="es"><head>
+<!DOCTYPE html>
+<html lang="es">
+<head>
   <meta charset="UTF-8">
   <title>Cotizador de Productos y Rectificador</title>
   <!-- Librerías externas: XLSX para Excel, jsPDF y jsPDF-autotable para PDF -->
@@ -122,856 +124,21 @@
   <div id="productos" class="container active">
     <h2>Lista de Productos</h2>
     <label for="filtroCategoria">Filtrar por categoría:</label>
-    <select id="filtroCategoria" onchange="filtrarProductos()"><option value="todos">Todas</option><option value="Vidrios">Vidrios</option><option value="Separadores">Separadores</option><option value="Accesorios">Accesorios</option><option value="Terminaciones">Terminaciones</option><option value="Perforado">Perforado</option><option value="Adicionales">Adicionales</option><option value="Otros">Otros</option></select>
+    <select id="filtroCategoria" onchange="filtrarProductos()">
+      <option value="todos">Todas</option>
+    </select>
 
     <label for="filtroEspesor">Filtrar por espesor:</label>
-    <select id="filtroEspesor" onchange="filtrarProductos()"><option value="todos">Todos</option><option value="0">0 mm</option><option value="0.1">0.1 mm</option><option value="0.15">0.15 mm</option><option value="4">4 mm</option><option value="5">5 mm</option><option value="6">6 mm</option><option value="8">8 mm</option><option value="9">9 mm</option><option value="10">10 mm</option><option value="12">12 mm</option><option value="13">13 mm</option><option value="15">15 mm</option><option value="16">16 mm</option><option value="17">17 mm</option><option value="18">18 mm</option><option value="19">19 mm</option><option value="20">20 mm</option></select>
+    <select id="filtroEspesor" onchange="filtrarProductos()">
+      <option value="todos">Todos</option>
+    </select>
 
     <input type="file" id="fileInput" accept=".xlsx, .xls">
     <button onclick="procesarExcel()">Cargar Excel</button>
     <button onclick="descargarExcel()">Descargar Excel</button>
     <button onclick="descargarHTML()">Descargar HTML</button>
     <button onclick="guardarDatos()">Guardar Productos</button>
-    <div id="listaProductos"><table>
-                        <tbody><tr>
-                          <th>Categoría</th>
-                          <th>Producto</th>
-                          <th>Espesor (mm)</th>
-                          <th>Precio</th>
-                        </tr><tr>
-                        <td>Vidrios</td>
-                        <td>Incoloro</td>
-                        <td>4</td>
-                        <td class="precio editable" onclick="editarPrecio(0)">
-                          2.500
-                        </td>
-                      </tr><tr>
-                        <td>Vidrios</td>
-                        <td>Incoloro</td>
-                        <td>5</td>
-                        <td class="precio editable" onclick="editarPrecio(1)">
-                          12.000
-                        </td>
-                      </tr><tr>
-                        <td>Vidrios</td>
-                        <td>Incoloro</td>
-                        <td>6</td>
-                        <td class="precio editable" onclick="editarPrecio(2)">
-                          14.000
-                        </td>
-                      </tr><tr>
-                        <td>Vidrios</td>
-                        <td>Incoloro</td>
-                        <td>8</td>
-                        <td class="precio editable" onclick="editarPrecio(3)">
-                          16.000
-                        </td>
-                      </tr><tr>
-                        <td>Vidrios</td>
-                        <td>Incoloro</td>
-                        <td>10</td>
-                        <td class="precio editable" onclick="editarPrecio(4)">
-                          18.000
-                        </td>
-                      </tr><tr>
-                        <td>Vidrios</td>
-                        <td>Incoloro</td>
-                        <td>12</td>
-                        <td class="precio editable" onclick="editarPrecio(5)">
-                          20.000
-                        </td>
-                      </tr><tr>
-                        <td>Vidrios</td>
-                        <td>Mateluz</td>
-                        <td>4</td>
-                        <td class="precio editable" onclick="editarPrecio(6)">
-                          11.000
-                        </td>
-                      </tr><tr>
-                        <td>Vidrios</td>
-                        <td>Mateluz</td>
-                        <td>5</td>
-                        <td class="precio editable" onclick="editarPrecio(7)">
-                          13.000
-                        </td>
-                      </tr><tr>
-                        <td>Vidrios</td>
-                        <td>Mateluz</td>
-                        <td>6</td>
-                        <td class="precio editable" onclick="editarPrecio(8)">
-                          15.000
-                        </td>
-                      </tr><tr>
-                        <td>Vidrios</td>
-                        <td>Templado</td>
-                        <td>4</td>
-                        <td class="precio editable" onclick="editarPrecio(9)">
-                          20.000
-                        </td>
-                      </tr><tr>
-                        <td>Vidrios</td>
-                        <td>Templado</td>
-                        <td>5</td>
-                        <td class="precio editable" onclick="editarPrecio(10)">
-                          22.000
-                        </td>
-                      </tr><tr>
-                        <td>Vidrios</td>
-                        <td>Templado</td>
-                        <td>6</td>
-                        <td class="precio editable" onclick="editarPrecio(11)">
-                          24.000
-                        </td>
-                      </tr><tr>
-                        <td>Vidrios</td>
-                        <td>Templado</td>
-                        <td>8</td>
-                        <td class="precio editable" onclick="editarPrecio(12)">
-                          26.000
-                        </td>
-                      </tr><tr>
-                        <td>Vidrios</td>
-                        <td>Templado</td>
-                        <td>10</td>
-                        <td class="precio editable" onclick="editarPrecio(13)">
-                          28.000
-                        </td>
-                      </tr><tr>
-                        <td>Vidrios</td>
-                        <td>Templado</td>
-                        <td>12</td>
-                        <td class="precio editable" onclick="editarPrecio(14)">
-                          30.000
-                        </td>
-                      </tr><tr>
-                        <td>Separadores</td>
-                        <td>Separador polisulfuro</td>
-                        <td>6</td>
-                        <td class="precio editable" onclick="editarPrecio(15)">
-                          2.180
-                        </td>
-                      </tr><tr>
-                        <td>Separadores</td>
-                        <td>Separador polisulfuro</td>
-                        <td>8</td>
-                        <td class="precio editable" onclick="editarPrecio(16)">
-                          2.180
-                        </td>
-                      </tr><tr>
-                        <td>Separadores</td>
-                        <td>Separador polisulfuro</td>
-                        <td>9</td>
-                        <td class="precio editable" onclick="editarPrecio(17)">
-                          2.180
-                        </td>
-                      </tr><tr>
-                        <td>Separadores</td>
-                        <td>Separador polisulfuro</td>
-                        <td>10</td>
-                        <td class="precio editable" onclick="editarPrecio(18)">
-                          2.180
-                        </td>
-                      </tr><tr>
-                        <td>Separadores</td>
-                        <td>Separador polisulfuro</td>
-                        <td>12</td>
-                        <td class="precio editable" onclick="editarPrecio(19)">
-                          2.180
-                        </td>
-                      </tr><tr>
-                        <td>Separadores</td>
-                        <td>Separador polisulfuro</td>
-                        <td>13</td>
-                        <td class="precio editable" onclick="editarPrecio(20)">
-                          3.758,32
-                        </td>
-                      </tr><tr>
-                        <td>Separadores</td>
-                        <td>Separador polisulfuro</td>
-                        <td>15</td>
-                        <td class="precio editable" onclick="editarPrecio(21)">
-                          3.758,32
-                        </td>
-                      </tr><tr>
-                        <td>Separadores</td>
-                        <td>Separador polisulfuro</td>
-                        <td>16</td>
-                        <td class="precio editable" onclick="editarPrecio(22)">
-                          3.845,52
-                        </td>
-                      </tr><tr>
-                        <td>Separadores</td>
-                        <td>Separador polisulfuro</td>
-                        <td>17</td>
-                        <td class="precio editable" onclick="editarPrecio(23)">
-                          3.845,52
-                        </td>
-                      </tr><tr>
-                        <td>Separadores</td>
-                        <td>Separador polisulfuro</td>
-                        <td>18</td>
-                        <td class="precio editable" onclick="editarPrecio(24)">
-                          3.845,52
-                        </td>
-                      </tr><tr>
-                        <td>Separadores</td>
-                        <td>Separador polisulfuro</td>
-                        <td>19</td>
-                        <td class="precio editable" onclick="editarPrecio(25)">
-                          3.845,52
-                        </td>
-                      </tr><tr>
-                        <td>Separadores</td>
-                        <td>Separador polisulfuro</td>
-                        <td>20</td>
-                        <td class="precio editable" onclick="editarPrecio(26)">
-                          3.845,52
-                        </td>
-                      </tr><tr>
-                        <td>Separadores</td>
-                        <td>Separador silicona estructural negra</td>
-                        <td>6</td>
-                        <td class="precio editable" onclick="editarPrecio(27)">
-                          4.708,8
-                        </td>
-                      </tr><tr>
-                        <td>Separadores</td>
-                        <td>Separador silicona estructural negra</td>
-                        <td>8</td>
-                        <td class="precio editable" onclick="editarPrecio(28)">
-                          4.708,8
-                        </td>
-                      </tr><tr>
-                        <td>Separadores</td>
-                        <td>Separador silicona estructural negra</td>
-                        <td>9</td>
-                        <td class="precio editable" onclick="editarPrecio(29)">
-                          4.708,8
-                        </td>
-                      </tr><tr>
-                        <td>Separadores</td>
-                        <td>Separador silicona estructural negra</td>
-                        <td>10</td>
-                        <td class="precio editable" onclick="editarPrecio(30)">
-                          4.708,8
-                        </td>
-                      </tr><tr>
-                        <td>Separadores</td>
-                        <td>Separador silicona estructural negra</td>
-                        <td>12</td>
-                        <td class="precio editable" onclick="editarPrecio(31)">
-                          4.708,8
-                        </td>
-                      </tr><tr>
-                        <td>Separadores</td>
-                        <td>Separador silicona estructural negra</td>
-                        <td>13</td>
-                        <td class="precio editable" onclick="editarPrecio(32)">
-                          5.406,4
-                        </td>
-                      </tr><tr>
-                        <td>Separadores</td>
-                        <td>Separador silicona estructural negra</td>
-                        <td>15</td>
-                        <td class="precio editable" onclick="editarPrecio(33)">
-                          5.406,4
-                        </td>
-                      </tr><tr>
-                        <td>Separadores</td>
-                        <td>Separador silicona estructural negra</td>
-                        <td>16</td>
-                        <td class="precio editable" onclick="editarPrecio(34)">
-                          5.694,16
-                        </td>
-                      </tr><tr>
-                        <td>Separadores</td>
-                        <td>Separador silicona estructural negra</td>
-                        <td>17</td>
-                        <td class="precio editable" onclick="editarPrecio(35)">
-                          5.694,16
-                        </td>
-                      </tr><tr>
-                        <td>Separadores</td>
-                        <td>Separador silicona estructural negra</td>
-                        <td>18</td>
-                        <td class="precio editable" onclick="editarPrecio(36)">
-                          5.694,16
-                        </td>
-                      </tr><tr>
-                        <td>Separadores</td>
-                        <td>Separador silicona estructural negra</td>
-                        <td>19</td>
-                        <td class="precio editable" onclick="editarPrecio(37)">
-                          5.694,16
-                        </td>
-                      </tr><tr>
-                        <td>Separadores</td>
-                        <td>Separador silicona estructural negra</td>
-                        <td>20</td>
-                        <td class="precio editable" onclick="editarPrecio(38)">
-                          5.694,16
-                        </td>
-                      </tr><tr>
-                        <td>Accesorios</td>
-                        <td>Laminado 33,1</td>
-                        <td>6</td>
-                        <td class="precio editable" onclick="editarPrecio(39)">
-                          26.552,4
-                        </td>
-                      </tr><tr>
-                        <td>Accesorios</td>
-                        <td>Laminado 44,1</td>
-                        <td>8</td>
-                        <td class="precio editable" onclick="editarPrecio(40)">
-                          31.801,84
-                        </td>
-                      </tr><tr>
-                        <td>Accesorios</td>
-                        <td>Laminado 55,1</td>
-                        <td>10</td>
-                        <td class="precio editable" onclick="editarPrecio(41)">
-                          37.452,4
-                        </td>
-                      </tr><tr>
-                        <td>Accesorios</td>
-                        <td>Laminado 66,1</td>
-                        <td>12</td>
-                        <td class="precio editable" onclick="editarPrecio(42)">
-                          46.416,56
-                        </td>
-                      </tr><tr>
-                        <td>Accesorios</td>
-                        <td>Laminado 33,2</td>
-                        <td>6</td>
-                        <td class="precio editable" onclick="editarPrecio(43)">
-                          37.260,56
-                        </td>
-                      </tr><tr>
-                        <td>Accesorios</td>
-                        <td>Laminado  44,2</td>
-                        <td>8</td>
-                        <td class="precio editable" onclick="editarPrecio(44)">
-                          43.739,52
-                        </td>
-                      </tr><tr>
-                        <td>Accesorios</td>
-                        <td>Laminado  55,2</td>
-                        <td>10</td>
-                        <td class="precio editable" onclick="editarPrecio(45)">
-                          48.273,92
-                        </td>
-                      </tr><tr>
-                        <td>Accesorios</td>
-                        <td>Laminado  66,2</td>
-                        <td>12</td>
-                        <td class="precio editable" onclick="editarPrecio(46)">
-                          53.915,76
-                        </td>
-                      </tr><tr>
-                        <td>Terminaciones</td>
-                        <td>Pulido opaco</td>
-                        <td>4</td>
-                        <td class="precio editable" onclick="editarPrecio(47)">
-                          680,16
-                        </td>
-                      </tr><tr>
-                        <td>Terminaciones</td>
-                        <td>Pulido opaco</td>
-                        <td>5</td>
-                        <td class="precio editable" onclick="editarPrecio(48)">
-                          680,16
-                        </td>
-                      </tr><tr>
-                        <td>Terminaciones</td>
-                        <td>Pulido opaco</td>
-                        <td>6</td>
-                        <td class="precio editable" onclick="editarPrecio(49)">
-                          680,16
-                        </td>
-                      </tr><tr>
-                        <td>Terminaciones</td>
-                        <td>Pulido opaco</td>
-                        <td>8</td>
-                        <td class="precio editable" onclick="editarPrecio(50)">
-                          1.281,84
-                        </td>
-                      </tr><tr>
-                        <td>Terminaciones</td>
-                        <td>Pulido opaco</td>
-                        <td>10</td>
-                        <td class="precio editable" onclick="editarPrecio(51)">
-                          1.281,84
-                        </td>
-                      </tr><tr>
-                        <td>Terminaciones</td>
-                        <td>Pulido opaco</td>
-                        <td>12</td>
-                        <td class="precio editable" onclick="editarPrecio(52)">
-                          1.281,84
-                        </td>
-                      </tr><tr>
-                        <td>Terminaciones</td>
-                        <td>Pulido opaco laminado 33,1</td>
-                        <td>-</td>
-                        <td class="precio editable" onclick="editarPrecio(53)">
-                          1.412,64
-                        </td>
-                      </tr><tr>
-                        <td>Terminaciones</td>
-                        <td>Pulido opaco laminado 44,1</td>
-                        <td>-</td>
-                        <td class="precio editable" onclick="editarPrecio(54)">
-                          1.709,12
-                        </td>
-                      </tr><tr>
-                        <td>Terminaciones</td>
-                        <td>Pulido opaco laminado 55,1</td>
-                        <td>-</td>
-                        <td class="precio editable" onclick="editarPrecio(55)">
-                          2.005,6
-                        </td>
-                      </tr><tr>
-                        <td>Terminaciones</td>
-                        <td>Pulido opaco laminado 66,1</td>
-                        <td>-</td>
-                        <td class="precio editable" onclick="editarPrecio(56)">
-                          2.197,44
-                        </td>
-                      </tr><tr>
-                        <td>Terminaciones</td>
-                        <td>Pulido brillante</td>
-                        <td>4</td>
-                        <td class="precio editable" onclick="editarPrecio(57)">
-                          1.273,12
-                        </td>
-                      </tr><tr>
-                        <td>Terminaciones</td>
-                        <td>Pulido brillante</td>
-                        <td>5</td>
-                        <td class="precio editable" onclick="editarPrecio(58)">
-                          1.273,12
-                        </td>
-                      </tr><tr>
-                        <td>Terminaciones</td>
-                        <td>Pulido brillante</td>
-                        <td>6</td>
-                        <td class="precio editable" onclick="editarPrecio(59)">
-                          1.273,12
-                        </td>
-                      </tr><tr>
-                        <td>Terminaciones</td>
-                        <td>Pulido brillante</td>
-                        <td>8</td>
-                        <td class="precio editable" onclick="editarPrecio(60)">
-                          1.761,44
-                        </td>
-                      </tr><tr>
-                        <td>Terminaciones</td>
-                        <td>Pulido brillante</td>
-                        <td>10</td>
-                        <td class="precio editable" onclick="editarPrecio(61)">
-                          1.761,44
-                        </td>
-                      </tr><tr>
-                        <td>Terminaciones</td>
-                        <td>Pulido brillante</td>
-                        <td>12</td>
-                        <td class="precio editable" onclick="editarPrecio(62)">
-                          1.761,44
-                        </td>
-                      </tr><tr>
-                        <td>Terminaciones</td>
-                        <td>Pulido brillante</td>
-                        <td>15</td>
-                        <td class="precio editable" onclick="editarPrecio(63)">
-                          3.958,88
-                        </td>
-                      </tr><tr>
-                        <td>Terminaciones</td>
-                        <td>Pulido brillante</td>
-                        <td>16</td>
-                        <td class="precio editable" onclick="editarPrecio(64)">
-                          3.958,88
-                        </td>
-                      </tr><tr>
-                        <td>Terminaciones</td>
-                        <td>Pulido brillante</td>
-                        <td>17</td>
-                        <td class="precio editable" onclick="editarPrecio(65)">
-                          3.958,88
-                        </td>
-                      </tr><tr>
-                        <td>Terminaciones</td>
-                        <td>Pulido brillante</td>
-                        <td>18</td>
-                        <td class="precio editable" onclick="editarPrecio(66)">
-                          3.958,88
-                        </td>
-                      </tr><tr>
-                        <td>Terminaciones</td>
-                        <td>Pulido brillante</td>
-                        <td>19</td>
-                        <td class="precio editable" onclick="editarPrecio(67)">
-                          3.958,88
-                        </td>
-                      </tr><tr>
-                        <td>Terminaciones</td>
-                        <td>Pulido brillante laminado 33,1</td>
-                        <td>-</td>
-                        <td class="precio editable" onclick="editarPrecio(68)">
-                          2.005,6
-                        </td>
-                      </tr><tr>
-                        <td>Terminaciones</td>
-                        <td>Pulido brillante laminado 44,1</td>
-                        <td>-</td>
-                        <td class="precio editable" onclick="editarPrecio(69)">
-                          2.293,36
-                        </td>
-                      </tr><tr>
-                        <td>Terminaciones</td>
-                        <td>Pulido brillante laminado 55,1</td>
-                        <td>-</td>
-                        <td class="precio editable" onclick="editarPrecio(70)">
-                          2.589,84
-                        </td>
-                      </tr><tr>
-                        <td>Terminaciones</td>
-                        <td>Pulido brillante laminado 66,1</td>
-                        <td>-</td>
-                        <td class="precio editable" onclick="editarPrecio(71)">
-                          2.877,6
-                        </td>
-                      </tr><tr>
-                        <td>Terminaciones</td>
-                        <td>Botado arista</td>
-                        <td>4</td>
-                        <td class="precio editable" onclick="editarPrecio(72)">
-                          261,6
-                        </td>
-                      </tr><tr>
-                        <td>Terminaciones</td>
-                        <td>Botado arista</td>
-                        <td>5</td>
-                        <td class="precio editable" onclick="editarPrecio(73)">
-                          261,6
-                        </td>
-                      </tr><tr>
-                        <td>Terminaciones</td>
-                        <td>Botado arista</td>
-                        <td>6</td>
-                        <td class="precio editable" onclick="editarPrecio(74)">
-                          261,6
-                        </td>
-                      </tr><tr>
-                        <td>Terminaciones</td>
-                        <td>Botado arista</td>
-                        <td>8</td>
-                        <td class="precio editable" onclick="editarPrecio(75)">
-                          872
-                        </td>
-                      </tr><tr>
-                        <td>Terminaciones</td>
-                        <td>Botado arista</td>
-                        <td>10</td>
-                        <td class="precio editable" onclick="editarPrecio(76)">
-                          872
-                        </td>
-                      </tr><tr>
-                        <td>Terminaciones</td>
-                        <td>Botado arista x tp</td>
-                        <td>4</td>
-                        <td class="precio editable" onclick="editarPrecio(77)">
-                          523,2
-                        </td>
-                      </tr><tr>
-                        <td>Terminaciones</td>
-                        <td>Botado arista x tp</td>
-                        <td>5</td>
-                        <td class="precio editable" onclick="editarPrecio(78)">
-                          523,2
-                        </td>
-                      </tr><tr>
-                        <td>Terminaciones</td>
-                        <td>Botado arista x tp</td>
-                        <td>6</td>
-                        <td class="precio editable" onclick="editarPrecio(79)">
-                          523,2
-                        </td>
-                      </tr><tr>
-                        <td>Perforado</td>
-                        <td>Perforado normal</td>
-                        <td>4</td>
-                        <td class="precio editable" onclick="editarPrecio(80)">
-                          1.369,04
-                        </td>
-                      </tr><tr>
-                        <td>Perforado</td>
-                        <td>Perforado normal</td>
-                        <td>5</td>
-                        <td class="precio editable" onclick="editarPrecio(81)">
-                          1.369,04
-                        </td>
-                      </tr><tr>
-                        <td>Perforado</td>
-                        <td>Perforado normal</td>
-                        <td>6</td>
-                        <td class="precio editable" onclick="editarPrecio(82)">
-                          1.369,04
-                        </td>
-                      </tr><tr>
-                        <td>Perforado</td>
-                        <td>Perforado normal</td>
-                        <td>8</td>
-                        <td class="precio editable" onclick="editarPrecio(83)">
-                          1.369,04
-                        </td>
-                      </tr><tr>
-                        <td>Perforado</td>
-                        <td>Perforado normal</td>
-                        <td>10</td>
-                        <td class="precio editable" onclick="editarPrecio(84)">
-                          1.369,04
-                        </td>
-                      </tr><tr>
-                        <td>Perforado</td>
-                        <td>Perforado normal</td>
-                        <td>12</td>
-                        <td class="precio editable" onclick="editarPrecio(85)">
-                          1.369,04
-                        </td>
-                      </tr><tr>
-                        <td>Perforado</td>
-                        <td>Perforado normal</td>
-                        <td>15</td>
-                        <td class="precio editable" onclick="editarPrecio(86)">
-                          4.830,88
-                        </td>
-                      </tr><tr>
-                        <td>Perforado</td>
-                        <td>Perforado normal</td>
-                        <td>16</td>
-                        <td class="precio editable" onclick="editarPrecio(87)">
-                          4.830,88
-                        </td>
-                      </tr><tr>
-                        <td>Perforado</td>
-                        <td>Perforado normal</td>
-                        <td>17</td>
-                        <td class="precio editable" onclick="editarPrecio(88)">
-                          4.830,88
-                        </td>
-                      </tr><tr>
-                        <td>Perforado</td>
-                        <td>Perforado normal</td>
-                        <td>18</td>
-                        <td class="precio editable" onclick="editarPrecio(89)">
-                          4.830,88
-                        </td>
-                      </tr><tr>
-                        <td>Perforado</td>
-                        <td>Perforado normal</td>
-                        <td>19</td>
-                        <td class="precio editable" onclick="editarPrecio(90)">
-                          4.830,88
-                        </td>
-                      </tr><tr>
-                        <td>Perforado</td>
-                        <td>Perforado avellanado</td>
-                        <td>4</td>
-                        <td class="precio editable" onclick="editarPrecio(91)">
-                          3.147,92
-                        </td>
-                      </tr><tr>
-                        <td>Perforado</td>
-                        <td>Perforado avellanado</td>
-                        <td>5</td>
-                        <td class="precio editable" onclick="editarPrecio(92)">
-                          3.147,92
-                        </td>
-                      </tr><tr>
-                        <td>Perforado</td>
-                        <td>Perforado avellanado</td>
-                        <td>6</td>
-                        <td class="precio editable" onclick="editarPrecio(93)">
-                          3.147,92
-                        </td>
-                      </tr><tr>
-                        <td>Perforado</td>
-                        <td>Perforado avellanado</td>
-                        <td>8</td>
-                        <td class="precio editable" onclick="editarPrecio(94)">
-                          3.147,92
-                        </td>
-                      </tr><tr>
-                        <td>Perforado</td>
-                        <td>Perforado avellanado</td>
-                        <td>10</td>
-                        <td class="precio editable" onclick="editarPrecio(95)">
-                          3.147,92
-                        </td>
-                      </tr><tr>
-                        <td>Perforado</td>
-                        <td>Perforado avellanado</td>
-                        <td>12</td>
-                        <td class="precio editable" onclick="editarPrecio(96)">
-                          3.147,92
-                        </td>
-                      </tr><tr>
-                        <td>Perforado</td>
-                        <td>Destajado normal</td>
-                        <td>4</td>
-                        <td class="precio editable" onclick="editarPrecio(97)">
-                          1.700,4
-                        </td>
-                      </tr><tr>
-                        <td>Perforado</td>
-                        <td>Destajado normal</td>
-                        <td>5</td>
-                        <td class="precio editable" onclick="editarPrecio(98)">
-                          1.700,4
-                        </td>
-                      </tr><tr>
-                        <td>Perforado</td>
-                        <td>Destajado normal</td>
-                        <td>6</td>
-                        <td class="precio editable" onclick="editarPrecio(99)">
-                          1.700,4
-                        </td>
-                      </tr><tr>
-                        <td>Perforado</td>
-                        <td>Destajado normal</td>
-                        <td>8</td>
-                        <td class="precio editable" onclick="editarPrecio(100)">
-                          1.700,4
-                        </td>
-                      </tr><tr>
-                        <td>Perforado</td>
-                        <td>Destajado normal</td>
-                        <td>10</td>
-                        <td class="precio editable" onclick="editarPrecio(101)">
-                          1.700,4
-                        </td>
-                      </tr><tr>
-                        <td>Perforado</td>
-                        <td>Destajado normal</td>
-                        <td>12</td>
-                        <td class="precio editable" onclick="editarPrecio(102)">
-                          1.700,4
-                        </td>
-                      </tr><tr>
-                        <td>Perforado</td>
-                        <td>Destajado central</td>
-                        <td>4</td>
-                        <td class="precio editable" onclick="editarPrecio(103)">
-                          17.736
-                        </td>
-                      </tr><tr>
-                        <td>Perforado</td>
-                        <td>Destajado central</td>
-                        <td>5</td>
-                        <td class="precio editable" onclick="editarPrecio(104)">
-                          17.736
-                        </td>
-                      </tr><tr>
-                        <td>Perforado</td>
-                        <td>Destajado central</td>
-                        <td>6</td>
-                        <td class="precio editable" onclick="editarPrecio(105)">
-                          17.736
-                        </td>
-                      </tr><tr>
-                        <td>Perforado</td>
-                        <td>Destajado central</td>
-                        <td>8</td>
-                        <td class="precio editable" onclick="editarPrecio(106)">
-                          17.736
-                        </td>
-                      </tr><tr>
-                        <td>Perforado</td>
-                        <td>Destajado central</td>
-                        <td>10</td>
-                        <td class="precio editable" onclick="editarPrecio(107)">
-                          17.736
-                        </td>
-                      </tr><tr>
-                        <td>Perforado</td>
-                        <td>Destajado central</td>
-                        <td>12</td>
-                        <td class="precio editable" onclick="editarPrecio(108)">
-                          17.736
-                        </td>
-                      </tr><tr>
-                        <td>Adicionales</td>
-                        <td>Formas Trapezoidal</td>
-                        <td>0.15</td>
-                        <td class="precio editable" onclick="editarPrecio(109)">
-                          0
-                        </td>
-                      </tr><tr>
-                        <td>Adicionales</td>
-                        <td>Formas medios puntos</td>
-                        <td>0.15</td>
-                        <td class="precio editable" onclick="editarPrecio(110)">
-                          0
-                        </td>
-                      </tr><tr>
-                        <td>Adicionales</td>
-                        <td>Planitherm 1.3T</td>
-                        <td>4</td>
-                        <td class="precio editable" onclick="editarPrecio(111)">
-                          15.103,04
-                        </td>
-                      </tr><tr>
-                        <td>Adicionales</td>
-                        <td>Planitherm 1.3T </td>
-                        <td>5</td>
-                        <td class="precio editable" onclick="editarPrecio(112)">
-                          19.297,36
-                        </td>
-                      </tr><tr>
-                        <td>Adicionales</td>
-                        <td>Planitherm 1.3T</td>
-                        <td>6</td>
-                        <td class="precio editable" onclick="editarPrecio(113)">
-                          22.488,88
-                        </td>
-                      </tr><tr>
-                        <td>Adicionales</td>
-                        <td>Pintura Serigrafía 100% o diseño (existiendo el bastidor)</td>
-                        <td>-</td>
-                        <td class="precio editable" onclick="editarPrecio(114)">
-                          15.390,8
-                        </td>
-                      </tr><tr>
-                        <td>Adicionales</td>
-                        <td>Serigrafía Digital</td>
-                        <td>-</td>
-                        <td class="precio editable" onclick="editarPrecio(115)">
-                          62.696,8
-                        </td>
-                      </tr><tr>
-                        <td>Accesorios</td>
-                        <td>Gas argón</td>
-                        <td>-</td>
-                        <td class="precio editable" onclick="editarPrecio(116)">
-                          1.464,96
-                        </td>
-                      </tr><tr>
-                        <td>Accesorios</td>
-                        <td>Válvula (unidad)</td>
-                        <td>-</td>
-                        <td class="precio editable" onclick="editarPrecio(117)">
-                          1.464,96
-                        </td>
-                      </tr><tr>
-                        <td>Otros</td>
-                        <td>Desplace 1 cara</td>
-                        <td>0.1</td>
-                        <td class="precio editable" onclick="editarPrecio(118)">
-                          0
-                        </td>
-                      </tr></tbody></table></div>
+    <div id="listaProductos">Cargando productos...</div>
   </div>
 
   <!-- Sección Cotizador (opcional) -->
@@ -997,12 +164,18 @@
     <h2>Rectificación</h2>
     <!-- Área para ingresar datos del proyecto -->
     <div class="project-info">
-      <input type="text" id="nombreProyecto" class="project-input" value="nombre del proyecto" onfocus="if(this.value=='nombre del proyecto') this.value='';" onblur="if(this.value=='') this.value='nombre del proyecto';">
-      <input type="text" id="codigoProyecto" class="project-input" value="codigo del proyecto" onfocus="if(this.value=='codigo del proyecto') this.value='';" onblur="if(this.value=='') this.value='codigo del proyecto';">
+      <input type="text" id="nombreProyecto" class="project-input"
+             value="nombre del proyecto"
+             onfocus="if(this.value=='nombre del proyecto') this.value='';"
+             onblur="if(this.value=='') this.value='nombre del proyecto';">
+      <input type="text" id="codigoProyecto" class="project-input"
+             value="codigo del proyecto"
+             onfocus="if(this.value=='codigo del proyecto') this.value='';"
+             onblur="if(this.value=='') this.value='codigo del proyecto';">
     </div>
 
     <table>
-      <tbody><tr>
+      <tr>
         <th>Eliminar</th>
         <th>Elemento</th>
         <th>Tipo</th>
@@ -1014,7 +187,7 @@
         <th>m²</th>
         <th>mL</th>
       </tr>
-      </tbody><tbody id="tablaRectificacion"><tr><td><button class="btn-eliminar">🗑️</button></td><td><select><option value="" disabled="" style="color: red;">Seleccione</option><option value="Accesorios">Accesorios</option><option value="Adicionales">Adicionales</option><option value="Otros">Otros</option><option value="Perforado">Perforado</option><option value="Separadores">Separadores</option><option value="Terminaciones">Terminaciones</option><option value="Ventana">Ventana</option><option value="Vidrios">Vidrios</option></select></td><td><select><option value="" disabled="" style="color: red;">Seleccione</option><option value="Abatir Exterior">Abatir Exterior</option><option value="Abatir Interior">Abatir Interior</option><option value="Baranda">Baranda</option><option value="Baranda Banquina">Baranda Banquina</option><option value="Baranda Botones (perforado)">Baranda Botones (perforado)</option><option value="Corredera">Corredera</option><option value="Cortina Cristal">Cortina Cristal</option><option value="Espejo">Espejo</option><option value="Guillotina">Guillotina</option><option value="Lucarnas">Lucarnas</option><option value="Mampara">Mampara</option><option value="Oscilobatiente">Oscilobatiente</option><option value="Proyectante">Proyectante</option><option value="Puerta Protex">Puerta Protex</option><option value="Puerta/Ventana">Puerta/Ventana</option><option value="Shower">Shower</option><option value="Ventana Fija">Ventana Fija</option><option value="Ventana Pleagable">Ventana Pleagable</option></select></td><td><input type="text"></td><td><input type="number"></td><td><input type="number"></td><td><input type="number"></td><td><input type="number"></td><td id="m2-0">0.00 m²</td><td id="ml-0">0.00 m</td></tr></tbody>
+      <tbody id="tablaRectificacion"></tbody>
     </table>
 
     <button onclick="agregarFila()">Agregar Fila</button>
@@ -1056,7 +229,15 @@
         })
         .catch(error => {
           console.error("Error al cargar productos desde JSON:", error);
-          document.getElementById("listaProductos").innerHTML = "<p>Error al cargar productos: " + error.message + "</p>";
+          // Fallback: si ocurre error (404 u otro), se carga una lista predeterminada.
+          productos = [
+            { "categoria": "Default", "nombre": "Producto A", "espesor": 5, "precio": 1000 },
+            { "categoria": "Default", "nombre": "Producto B", "espesor": 6, "precio": 1500 }
+          ];
+          localStorage.setItem("productos", JSON.stringify(productos));
+          inicializarFiltros();
+          mostrarProductos();
+          document.getElementById("listaProductos").innerHTML += "<p>Se ha cargado la lista de productos predeterminada.</p>";
         });
     }
 
@@ -1186,10 +367,10 @@
           newItem.nombre = newItem["producto"] || newItem["nombre"] || "Sin nombre";
           newItem.espesor = newItem["espesor"] ? parseFloat(newItem["espesor"]) || 0 : 0;
           newItem.precio = newItem["precio"] ? parseFloat(newItem["precio"]) || 0 : 0;
-
+  
           return newItem;
         });
-
+  
         productos = productosNormalizados;
         localStorage.setItem("productos", JSON.stringify(productos));
         inicializarFiltros();
@@ -1197,7 +378,7 @@
       };
       reader.readAsArrayBuffer(file);
     }
-
+  
     // Inicialización de Productos:
     // Si no hay datos en localStorage, se carga desde productos.json (útil en GitHub Pages).
     if (productos.length === 0) {
@@ -1206,13 +387,13 @@
       inicializarFiltros();
       mostrarProductos();
     }
-
+  
     /* ------------------------------------------------- */
     /*       Funcionalidades de Rectificador             */
     /* ------------------------------------------------- */
     // Se carga la información de rectificaciones desde localStorage.
     let rectificaciones = JSON.parse(localStorage.getItem("rectificaciones")) || [];
-
+  
     // Opciones para el desplegable "Tipo"
     const opcionesTipo = [
       "Corredera",
@@ -1234,21 +415,21 @@
       "Mampara",
       "Puerta Protex"
     ];
-
+  
     function inicializarRectificacion() {
       let categorias = [...new Set(productos.map(p => p.categoria))];
       if (!categorias.includes("Ventana")) { categorias.push("Ventana"); }
       categorias.sort((a, b) => a.localeCompare(b));
       actualizarTablaRectificacion(categorias);
     }
-
+  
     function actualizarTablaRectificacion(categorias) {
       const tabla = document.getElementById("tablaRectificacion");
       tabla.innerHTML = "";
-
+  
       rectificaciones.forEach((rectificacion, index) => {
         const fila = document.createElement("tr");
-
+  
         // Columna de eliminación
         const celdaEliminar = document.createElement("td");
         const botonEliminar = document.createElement("button");
@@ -1257,7 +438,7 @@
         botonEliminar.onclick = () => eliminarFila(index);
         celdaEliminar.appendChild(botonEliminar);
         fila.appendChild(celdaEliminar);
-
+  
         // Columna "Elemento": desplegable
         const celdaElemento = document.createElement("td");
         const selectElemento = document.createElement("select");
@@ -1281,7 +462,7 @@
         };
         celdaElemento.appendChild(selectElemento);
         fila.appendChild(celdaElemento);
-
+  
         // Columna "Tipo": desplegable
         const celdaTipo = document.createElement("td");
         const selectTipo = document.createElement("select");
@@ -1306,43 +487,43 @@
         };
         celdaTipo.appendChild(selectTipo);
         fila.appendChild(celdaTipo);
-
+  
         // Columnas "Nombre", "Cantidad", "Ancho", "Alto" y "Asentamiento" mediante inputs.
         fila.appendChild(crearCeldaInput("text", rectificaciones[index].nombre, index, "nombre"));
         fila.appendChild(crearCeldaInput("number", rectificaciones[index].cantidad, index, "cantidad"));
         fila.appendChild(crearCeldaInput("number", rectificaciones[index].ancho, index, "ancho"));
         fila.appendChild(crearCeldaInput("number", rectificaciones[index].alto, index, "alto"));
         fila.appendChild(crearCeldaInput("number", rectificaciones[index].asentamiento, index, "asentamiento"));
-
+  
         // Columna para m²
         const celdaM2 = document.createElement("td");
         celdaM2.id = `m2-${index}`;
         celdaM2.textContent = calcularM2(rectificaciones[index].ancho, rectificaciones[index].alto, rectificaciones[index].asentamiento) + " m²";
         fila.appendChild(celdaM2);
-
+  
         // Columna para mL
         const celdaML = document.createElement("td");
         celdaML.id = `ml-${index}`;
         celdaML.textContent = calcularML(rectificaciones[index].ancho, rectificaciones[index].alto, rectificaciones[index].asentamiento) + " m";
         fila.appendChild(celdaML);
-
+  
         tabla.appendChild(fila);
       });
     }
-
+  
     // Función genérica para crear una celda con input.
     function crearCeldaInput(tipo, valor, indice, propiedad) {
       const celda = document.createElement("td");
       const input = document.createElement("input");
       input.type = tipo;
       input.value = (valor !== undefined && valor !== null) ? valor : "";
-
+  
       if (["ancho", "alto", "asentamiento"].includes(propiedad)) {
         input.addEventListener("focus", function() {
           if (input.value === "0") { input.value = ""; }
         });
       }
-
+  
       input.oninput = function(event) {
         if (["cantidad", "ancho", "alto", "asentamiento"].includes(propiedad)) {
           rectificaciones[indice][propiedad] = parseFloat(event.target.value) || 0;
@@ -1354,7 +535,7 @@
       celda.appendChild(input);
       return celda;
     }
-
+  
     // Funciones para calcular m² y mL.
     function calcularM2(ancho, alto, asentamiento) {
       const a = parseFloat(ancho) || 0;
@@ -1362,26 +543,26 @@
       const asen = parseFloat(asentamiento) || 0;
       return ((a * (h + asen)) / 1000000).toFixed(2);
     }
-
+  
     function calcularML(ancho, alto, asentamiento) {
       const a = parseFloat(ancho) || 0;
       const h = parseFloat(alto) || 0;
       const asen = parseFloat(asentamiento) || 0;
       return (((a * 2) + ((h + asen) * 2)) / 1000).toFixed(2);
     }
-
+  
     // Actualiza los cálculos sin redibujar toda la tabla.
     function actualizarCalculosSinRedibujar(index) {
       const rectificacion = rectificaciones[index];
       rectificacion.m2 = calcularM2(rectificacion.ancho, rectificacion.alto, rectificacion.asentamiento);
-      rectificacion.ml = calcularML(rectificacion.ancho, rectificacion.alto, rectificacion.asentamiento);
+      rectificacion.ml = calcularML(rectificacion.ancho, rectificacion.alto, rectificaciones[index].asentamiento);
       const celdaM2 = document.getElementById(`m2-${index}`);
       const celdaML = document.getElementById(`ml-${index}`);
       if (celdaM2) celdaM2.textContent = rectificacion.m2 + " m²";
       if (celdaML) celdaML.textContent = rectificacion.ml + " m";
       guardarRectificacion();
     }
-
+  
     /* ------------------------------------------------- */
     /*       Funcionalidades para Rectificador           */
     /* ------------------------------------------------- */
@@ -1401,28 +582,28 @@
       guardarRectificacion();
       inicializarRectificacion();
     }
-
+  
     // Elimina la fila indicada.
     function eliminarFila(index) {
       rectificaciones.splice(index, 1);
       guardarRectificacion();
       inicializarRectificacion();
     }
-
+  
     // Guarda el array "rectificaciones" en localStorage.
     function guardarRectificacion() {
       localStorage.setItem("rectificaciones", JSON.stringify(rectificaciones));
     }
-
+  
     // Funciones para mostrar y ocultar el modal de exportación.
     function mostrarOpcionesGuardar() {
       document.getElementById("modalGuardar").style.display = "block";
     }
-
+  
     function cerrarModalGuardar() {
       document.getElementById("modalGuardar").style.display = "none";
     }
-
+  
     // Exporta a PDF usando jsPDF y autoTable.
     function exportarPDF() {
       cerrarModalGuardar();
@@ -1448,7 +629,7 @@
       });
       doc.save("rectificaciones.pdf");
     }
-
+  
     // Exporta a Excel usando SheetJS.
     function exportarExcel() {
       cerrarModalGuardar();
@@ -1471,7 +652,7 @@
       XLSX.utils.book_append_sheet(wb, ws, "Rectificaciones");
       XLSX.writeFile(wb, "rectificaciones.xlsx");
     }
-
+  
     // Exporta el HTML completo actual a un archivo HTML.
     function exportarHTML() {
       cerrarModalGuardar();
@@ -1489,7 +670,7 @@
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
     }
-
+  
     /* ------------------------------------------------- */
     /*            Función de Navegación                  */
     /* ------------------------------------------------- */
@@ -1497,10 +678,9 @@
       document.querySelectorAll(".container").forEach(div => div.classList.remove("active"));
       document.getElementById(seccion).classList.add("active");
     }
-
+  
     // Inicialización de la sección Rectificador.
     inicializarRectificacion();
   </script>
-
-
-</body></html>
+</body>
+</html>
