@@ -2,52 +2,32 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Rectificación</title>
-  <!-- Librerías para exportar a PDF y Excel -->
+  <title>Cotizador de Productos y Rectificador</title>
+  <!-- Librerías externas -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.5/xlsx.full.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.2/xlsx.full.min.js"></script>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 10px;
-    }
-    h2 {
-      margin-bottom: 5px;
-    }
-    /* Área para los datos del proyecto */
-    .project-info {
-      font-size: 1.2em;
-      margin-bottom: 10px;
-    }
-    input.project-input {
-      font-size: 1em;
-      width: 300px;
-      padding: 4px;
-      margin-bottom: 5px;
-      display: block;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      table-layout: auto;
-    }
-    th, td {
-      border: 1px solid #ddd;
-      padding: 4px; /* Filas más compactas */
-      text-align: left;
-      white-space: nowrap;
-      font-size: 0.9em;
-    }
-    th {
-      background-color: #f4f4f4;
-    }
-    input, button, select {
-      margin: 2px;
-      padding: 4px;
-      font-size: 0.9em;
-    }
+    /* Estilos generales */
+    body { font-family: Arial, sans-serif; margin: 0; padding: 0; }
+    .navbar { background: #333; color: white; padding: 15px; text-align: center; }
+    .navbar a { color: white; text-decoration: none; margin: 0 15px; font-size: 18px; }
+    .navbar a:hover { text-decoration: underline; }
+    .container { padding: 20px; display: none; }
+    .active { display: block; }
+    table { width: 100%; border-collapse: collapse; table-layout: auto; }
+    th, td { border: 1px solid #ddd; padding: 10px; text-align: left; white-space: nowrap; }
+    th { background-color: #f4f4f4; }
+    .precio { text-align: right; cursor: pointer; }
+    .precio::before { content: "$ "; float: left; }
+    input, button, select { margin: 10px; padding: 8px; }
+
+    /* Estilos para Productos */
+    /* Puedes ajustar estos estilos según tus necesidades */
+
+    /* Estilos para la sección Rectificador */
+    .project-info { font-size: 1.2em; margin-bottom: 10px; }
+    input.project-input { font-size: 1em; width: 300px; padding: 4px; margin-bottom: 5px; display: block; }
     .btn-eliminar {
       background-color: red;
       color: white;
@@ -81,52 +61,208 @@
   </style>
 </head>
 <body>
-  <h2>Rectificación</h2>
-  <!-- Área para ingresar datos del proyecto -->
-  <div class="project-info">
-    <input type="text" id="nombreProyecto" class="project-input" 
-           value="nombre del proyecto" 
-           onfocus="if(this.value=='nombre del proyecto') this.value='';" 
-           onblur="if(this.value=='') this.value='nombre del proyecto';">
-    <input type="text" id="codigoProyecto" class="project-input" 
-           value="codigo del proyecto" 
-           onfocus="if(this.value=='codigo del proyecto') this.value='';" 
-           onblur="if(this.value=='') this.value='codigo del proyecto';">
+  <!-- Menú de navegación -->
+  <div class="navbar">
+    <a href="#" onclick="mostrarSeccion('productos')">Lista de Productos</a>
+    <a href="#" onclick="mostrarSeccion('cotizador')">Cotizador</a>
+    <a href="#" onclick="mostrarSeccion('historial')">Historial</a>
+    <a href="#" onclick="mostrarSeccion('configuracion')">Configuración</a>
+    <a href="#" onclick="mostrarSeccion('rectificador')">Rectificador</a>
   </div>
 
-  <table>
-    <tr>
-      <th>Eliminar</th>
-      <th>Elemento</th>
-      <th>Tipo</th>
-      <th>Nombre</th>
-      <th>Cantidad</th>
-      <th>Ancho (mm)</th>
-      <th>Alto (mm)</th>
-      <th>Asentamiento (mm)</th>
-      <th>m²</th>
-      <th>mL</th>
-    </tr>
-    <tbody id="tablaRectificacion"></tbody>
-  </table>
+  <!-- Sección de Productos -->
+  <div id="productos" class="container active">
+    <h2>Lista de Productos</h2>
+    <label for="filtroCategoria">Filtrar por categoría:</label>
+    <select id="filtroCategoria" onchange="filtrarProductos()">
+      <option value="todos">Todas</option>
+    </select>
 
-  <button onclick="agregarFila()">Agregar Fila</button>
-  <button onclick="mostrarOpcionesGuardar()">Guardar Rectificación</button>
+    <label for="filtroEspesor">Filtrar por espesor:</label>
+    <select id="filtroEspesor" onchange="filtrarProductos()">
+      <option value="todos">Todos</option>
+    </select>
 
-  <!-- Modal para exportación -->
-  <div id="modalGuardar">
-    <div class="modal-content">
-      <h3>Guardar como:</h3>
-      <button onclick="exportarPDF()">PDF</button>
-      <button onclick="exportarExcel()">Excel</button>
-      <button onclick="exportarHTML()">HTML</button>
-      <button onclick="cerrarModalGuardar()">Cancelar</button>
+    <input type="file" id="fileInput" accept=".xlsx, .xls">
+    <button onclick="procesarExcel()">Cargar Excel</button>
+    <button onclick="descargarExcel()">Descargar Excel</button>
+    <button onclick="descargarHTML()">Descargar HTML</button>
+    <button onclick="guardarDatos()">Guardar Productos</button>
+    <div id="listaProductos">Cargando productos...</div>
+  </div>
+
+  <!-- (Opcional) Sección de Cotizador -->
+  <div id="cotizador" class="container">
+    <h2>Cotizador</h2>
+    <!-- Contenido del cotizador aquí -->
+  </div>
+
+  <!-- (Opcional) Sección de Historial -->
+  <div id="historial" class="container">
+    <h2>Historial</h2>
+    <!-- Contenido del historial aquí -->
+  </div>
+
+  <!-- (Opcional) Sección de Configuración -->
+  <div id="configuracion" class="container">
+    <h2>Configuración</h2>
+    <!-- Contenido de configuración aquí -->
+  </div>
+
+  <!-- Sección Rectificador -->
+  <div id="rectificador" class="container">
+    <h2>Rectificación</h2>
+    <!-- Área para ingresar datos del proyecto -->
+    <div class="project-info">
+      <input type="text" id="nombreProyecto" class="project-input"
+             value="nombre del proyecto"
+             onfocus="if(this.value=='nombre del proyecto') this.value='';"
+             onblur="if(this.value=='') this.value='nombre del proyecto';">
+      <input type="text" id="codigoProyecto" class="project-input"
+             value="codigo del proyecto"
+             onfocus="if(this.value=='codigo del proyecto') this.value='';"
+             onblur="if(this.value=='') this.value='codigo del proyecto';">
+    </div>
+
+    <table>
+      <tr>
+        <th>Eliminar</th>
+        <th>Elemento</th>
+        <th>Tipo</th>
+        <th>Nombre</th>
+        <th>Cantidad</th>
+        <th>Ancho (mm)</th>
+        <th>Alto (mm)</th>
+        <th>Asentamiento (mm)</th>
+        <th>m²</th>
+        <th>mL</th>
+      </tr>
+      <tbody id="tablaRectificacion"></tbody>
+    </table>
+
+    <button onclick="agregarFila()">Agregar Fila</button>
+    <button onclick="mostrarOpcionesGuardar()">Guardar Rectificación</button>
+
+    <!-- Modal para exportación -->
+    <div id="modalGuardar">
+      <div class="modal-content">
+        <h3>Guardar como:</h3>
+        <button onclick="exportarPDF()">PDF</button>
+        <button onclick="exportarExcel()">Excel</button>
+        <button onclick="exportarHTML()">HTML</button>
+        <button onclick="cerrarModalGuardar()">Cancelar</button>
+      </div>
     </div>
   </div>
 
   <script>
-    // Se cargan los datos de localStorage o se inicializan arrays vacíos.
+    /* ------------------------------------ */
+    /*         Funcionalidades de Productos           */
+    /* ------------------------------------ */
+
+    // Se carga la información de productos del localStorage
     let productos = JSON.parse(localStorage.getItem("productos")) || [];
+
+    function inicializarFiltros() {
+      let filtroCategoria = document.getElementById("filtroCategoria");
+      let filtroEspesor = document.getElementById("filtroEspesor");
+
+      let categorias = [...new Set(productos.map(p => p.categoria))];
+      let espesores = [...new Set(productos.map(p => p.espesor).filter(e => e !== null))];
+
+      filtroCategoria.innerHTML = '<option value="todos">Todas</option>';
+      filtroEspesor.innerHTML = '<option value="todos">Todos</option>';
+
+      categorias.forEach(categoria => {
+        let opcion = document.createElement("option");
+        opcion.value = categoria;
+        opcion.textContent = categoria;
+        filtroCategoria.appendChild(opcion);
+      });
+
+      espesores.sort((a, b) => a - b).forEach(espesor => {
+        let opcion = document.createElement("option");
+        opcion.value = espesor;
+        opcion.textContent = espesor + " mm";
+        filtroEspesor.appendChild(opcion);
+      });
+    }
+
+    function mostrarProductos() {
+      let tablaHTML = "<table><tr><th>Categoría</th><th>Producto</th><th>Espesor (mm)</th><th>Precio</th></tr>";
+
+      let categoriaSeleccionada = document.getElementById("filtroCategoria").value;
+      let espesorSeleccionado = document.getElementById("filtroEspesor").value;
+
+      let listaFiltrada = productos.filter(p =>
+        (categoriaSeleccionada === "todos" || p.categoria === categoriaSeleccionada) &&
+        (espesorSeleccionado === "todos" || p.espesor == espesorSeleccionado)
+      );
+
+      listaFiltrada.forEach((producto, index) => {
+        let precioMostrar = producto.precio === null ? "-" : producto.precio.toLocaleString("es-CL");
+        tablaHTML += `<tr>
+                        <td>${producto.categoria}</td>
+                        <td>${producto.nombre}</td>
+                        <td>${producto.espesor ? producto.espesor : "-"}</td>
+                        <td class="precio editable" onclick="editarPrecio(${index})">${precioMostrar}</td>
+                      </tr>`;
+      });
+
+      tablaHTML += "</table>";
+      document.getElementById("listaProductos").innerHTML = tablaHTML;
+    }
+
+    function editarPrecio(index) {
+      let nuevoPrecio = prompt("Ingresa el nuevo precio para " +
+        productos[index].nombre + " " + productos[index].espesor + "mm:", productos[index].precio);
+      if (nuevoPrecio !== null && !isNaN(nuevoPrecio) && nuevoPrecio > 0) {
+        productos[index].precio = parseInt(nuevoPrecio);
+        localStorage.setItem("productos", JSON.stringify(productos));
+        mostrarProductos();
+      } else {
+        alert("Por favor, ingresa un número válido.");
+      }
+    }
+
+    function descargarExcel() {
+      const hoja = XLSX.utils.json_to_sheet(productos);
+      const libro = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(libro, hoja, "Productos");
+      XLSX.writeFile(libro, "productos.xlsx");
+    }
+
+    function descargarHTML() {
+      let contenidoHTML = document.documentElement.outerHTML;
+      const blob = new Blob([contenidoHTML], { type: "text/html" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = "productos_completos.html";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    function guardarDatos() {
+      localStorage.setItem("productos", JSON.stringify(productos));
+      alert("Los productos han sido guardados correctamente.");
+    }
+
+    function filtrarProductos() {
+      mostrarProductos();
+    }
+
+    // (Aquí se podría incluir la definición de "procesarExcel()" si se desea cargar datos desde un Excel)
+
+    // Inicialización de Productos
+    inicializarFiltros();
+    mostrarProductos();
+
+    /* ------------------------------------ */
+    /*        Funcionalidades de Rectificador         */
+    /* ------------------------------------ */
+
+    // Se carga la información de rectificaciones del localStorage
     let rectificaciones = JSON.parse(localStorage.getItem("rectificaciones")) || [];
 
     // Opciones para el desplegable "Tipo"
@@ -152,12 +288,9 @@
     ];
 
     function inicializarRectificacion() {
-      // Se obtienen las categorías existentes en productos y se añade "Ventana" si no está presente.
+      // Obtiene las categorías existentes en productos y añade "Ventana" si no está presente.
       let categorias = [...new Set(productos.map(p => p.categoria))];
-      if (!categorias.includes("Ventana")) {
-        categorias.push("Ventana");
-      }
-      // Se ordenan alfabéticamente
+      if (!categorias.includes("Ventana")) { categorias.push("Ventana"); }
       categorias.sort((a, b) => a.localeCompare(b));
       actualizarTablaRectificacion(categorias);
     }
@@ -169,7 +302,7 @@
       rectificaciones.forEach((rectificacion, index) => {
         let fila = document.createElement("tr");
 
-        // Botón de eliminación
+        // Columna de eliminación
         let celdaEliminar = document.createElement("td");
         let botonEliminar = document.createElement("button");
         botonEliminar.textContent = "🗑️";
@@ -178,7 +311,7 @@
         celdaEliminar.appendChild(botonEliminar);
         fila.appendChild(celdaEliminar);
 
-        // Columna "Elemento": desplegable con opción por defecto "Seleccione" en rojo.
+        // Columna "Elemento": desplegable
         let celdaElemento = document.createElement("td");
         let selectElemento = document.createElement("select");
         let defaultOptionElem = document.createElement("option");
@@ -186,17 +319,13 @@
         defaultOptionElem.textContent = "Seleccione";
         defaultOptionElem.style.color = "red";
         defaultOptionElem.disabled = true;
-        if (!rectificaciones[index].elemento) {
-          defaultOptionElem.selected = true;
-        }
+        if (!rectificaciones[index].elemento) { defaultOptionElem.selected = true; }
         selectElemento.appendChild(defaultOptionElem);
         categorias.forEach(categoria => {
           let opcion = document.createElement("option");
           opcion.value = categoria;
           opcion.textContent = categoria;
-          if (categoria === rectificaciones[index].elemento) {
-            opcion.selected = true;
-          }
+          if (categoria === rectificaciones[index].elemento) { opcion.selected = true; }
           selectElemento.appendChild(opcion);
         });
         selectElemento.onchange = () => {
@@ -206,7 +335,7 @@
         celdaElemento.appendChild(selectElemento);
         fila.appendChild(celdaElemento);
 
-        // Columna "Tipo": desplegable con opción por defecto "Seleccione" en rojo y opciones ordenadas alfabéticamente.
+        // Columna "Tipo": desplegable con opciones ordenadas alfabéticamente
         let celdaTipo = document.createElement("td");
         let selectTipo = document.createElement("select");
         let defaultOption = document.createElement("option");
@@ -214,18 +343,14 @@
         defaultOption.textContent = "Seleccione";
         defaultOption.style.color = "red";
         defaultOption.disabled = true;
-        if (!rectificaciones[index].tipo) {
-          defaultOption.selected = true;
-        }
+        if (!rectificaciones[index].tipo) { defaultOption.selected = true; }
         selectTipo.appendChild(defaultOption);
         let sortedTipos = opcionesTipo.slice().sort((a, b) => a.localeCompare(b));
         sortedTipos.forEach(tipoOption => {
           let opt = document.createElement("option");
           opt.value = tipoOption;
           opt.textContent = tipoOption;
-          if (tipoOption === rectificaciones[index].tipo) {
-            opt.selected = true;
-          }
+          if (tipoOption === rectificaciones[index].tipo) { opt.selected = true; }
           selectTipo.appendChild(opt);
         });
         selectTipo.onchange = () => {
@@ -235,27 +360,23 @@
         celdaTipo.appendChild(selectTipo);
         fila.appendChild(celdaTipo);
 
-        // Columna "Nombre"
-        fila.appendChild(crearCeldaInput("text", rectificacion.nombre, index, "nombre"));
-        // Columna "Cantidad"
-        fila.appendChild(crearCeldaInput("number", rectificacion.cantidad, index, "cantidad"));
-        // Columna "Ancho (mm)"
-        fila.appendChild(crearCeldaInput("number", rectificacion.ancho, index, "ancho"));
-        // Columna "Alto (mm)"
-        fila.appendChild(crearCeldaInput("number", rectificacion.alto, index, "alto"));
-        // Columna "Asentamiento (mm)"
-        fila.appendChild(crearCeldaInput("number", rectificacion.asentamiento, index, "asentamiento"));
+        // Columnas "Nombre", "Cantidad", "Ancho", "Alto" y "Asentamiento" mediante inputs
+        fila.appendChild(crearCeldaInput("text", rectificaciones[index].nombre, index, "nombre"));
+        fila.appendChild(crearCeldaInput("number", rectificaciones[index].cantidad, index, "cantidad"));
+        fila.appendChild(crearCeldaInput("number", rectificaciones[index].ancho, index, "ancho"));
+        fila.appendChild(crearCeldaInput("number", rectificaciones[index].alto, index, "alto"));
+        fila.appendChild(crearCeldaInput("number", rectificaciones[index].asentamiento, index, "asentamiento"));
 
-        // Columna "m²": (ancho * (alto + asentamiento)) / 1,000,000
+        // Columna para m²
         let celdaM2 = document.createElement("td");
         celdaM2.id = `m2-${index}`;
-        celdaM2.textContent = calcularM2(rectificacion.ancho, rectificacion.alto, rectificacion.asentamiento) + " m²";
+        celdaM2.textContent = calcularM2(rectificaciones[index].ancho, rectificaciones[index].alto, rectificaciones[index].asentamiento) + " m²";
         fila.appendChild(celdaM2);
 
-        // Columna "mL": ((ancho * 2) + ((alto + asentamiento) * 2)) / 1,000
+        // Columna para mL
         let celdaML = document.createElement("td");
         celdaML.id = `ml-${index}`;
-        celdaML.textContent = calcularML(rectificacion.ancho, rectificacion.alto, rectificacion.asentamiento) + " m";
+        celdaML.textContent = calcularML(rectificaciones[index].ancho, rectificaciones[index].alto, rectificaciones[index].asentamiento) + " m";
         fila.appendChild(celdaML);
 
         tabla.appendChild(fila);
@@ -288,22 +409,20 @@
       return celda;
     }
 
-    // Función para calcular m²: (ancho * (alto + asentamiento)) / 1,000,000
+    // Funciones para el cálculo de m² y mL.
     function calcularM2(ancho, alto, asentamiento) {
       let a = parseFloat(ancho) || 0;
       let h = parseFloat(alto) || 0;
       let asen = parseFloat(asentamiento) || 0;
       return ((a * (h + asen)) / 1000000).toFixed(2);
     }
-
-    // Función para calcular mL: ((ancho * 2) + ((alto + asentamiento) * 2)) / 1,000
     function calcularML(ancho, alto, asentamiento) {
       let a = parseFloat(ancho) || 0;
       let h = parseFloat(alto) || 0;
       let asen = parseFloat(asentamiento) || 0;
       return (((a * 2) + ((h + asen) * 2)) / 1000).toFixed(2);
     }
-
+    
     // Actualiza los cálculos sin redibujar toda la tabla.
     function actualizarCalculosSinRedibujar(index) {
       let rectificacion = rectificaciones[index];
@@ -402,10 +521,9 @@
       XLSX.writeFile(wb, "rectificaciones.xlsx");
     }
 
-    // Exporta el código HTML completo actual a un archivo, sincronizando los valores de los inputs.
+    // Exporta el HTML completo actual a un archivo HTML.
     function exportarHTML() {
       cerrarModalGuardar();
-      // Sincronización: Actualiza el atributo "value" de cada <input> con su valor actual.
       document.querySelectorAll("input").forEach(input => {
         input.setAttribute("value", input.value);
       });
@@ -421,7 +539,15 @@
       URL.revokeObjectURL(url);
     }
 
-    // Inicializa la tabla al cargar la página.
+    /* ------------------------------------ */
+    /*          Función de Navegación          */
+    /* ------------------------------------ */
+    function mostrarSeccion(seccion) {
+      document.querySelectorAll(".container").forEach(div => div.classList.remove("active"));
+      document.getElementById(seccion).classList.add("active");
+    }
+
+    // Inicialización de la sección Rectificador
     inicializarRectificacion();
   </script>
 </body>
