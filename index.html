@@ -1,686 +1,661 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <title>Cotizador de Productos y Rectificador</title>
-  <!-- Librerías externas: XLSX para Excel, jsPDF y jsPDF-autotable para PDF -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.5/xlsx.full.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
-  <style>
-    /* Estilos generales */
+<html lang="es"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Precios Unitarios</title>
+<style>
     body {
-      font-family: Arial, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+      background: #f6faff;
       margin: 0;
-      padding: 0;
+      color: #333;
     }
-    .navbar {
-      background: #333;
-      color: white;
-      padding: 15px;
-      text-align: center;
-    }
-    .navbar a {
-      color: white;
-      text-decoration: none;
-      margin: 0 15px;
-      font-size: 18px;
-    }
-    .navbar a:hover {
-      text-decoration: underline;
-    }
-    .container {
-      padding: 20px;
-      display: none;
-    }
-    .active {
-      display: block;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      table-layout: auto;
-    }
-    th, td {
-      border: 1px solid #ddd;
-      padding: 10px;
-      text-align: left;
-      white-space: nowrap;
-    }
-    th {
-      background-color: #f4f4f4;
-    }
-    .precio {
-      text-align: right;
-      cursor: pointer;
-    }
-    .precio::before {
-      content: "$ ";
-      float: left;
-    }
-    input, button, select {
-      margin: 10px;
-      padding: 8px;
-    }
-    
-    /* Sección Productos */
-    /* (Aquí puedes ajustar o agregar estilos propios) */
-    
-    /* Sección Rectificador */
-    .project-info {
-      font-size: 1.2em;
-      margin-bottom: 10px;
-    }
-    input.project-input {
-      font-size: 1em;
-      width: 300px;
-      padding: 4px;
-      margin-bottom: 5px;
-      display: block;
-    }
-    .btn-eliminar {
-      background-color: red;
-      color: white;
-      border: none;
-      padding: 4px;
-      cursor: pointer;
-      font-size: 0.9em;
-    }
-    /* Modal para exportación */
-    #modalGuardar {
-      display: none;
-      position: fixed;
+    nav {
+      background-color: #b3d8f3;
+      padding: 10px 20px;
+      position: sticky;
       top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0,0,0,0.5);
       z-index: 1000;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
-    #modalGuardar .modal-content {
-      background: #fff;
-      padding: 20px;
-      width: 300px;
-      margin: 100px auto;
-      text-align: center;
-    }
-    #modalGuardar .modal-content button {
-      margin: 5px;
-      padding: 6px;
-    }
+    nav h1 { margin:0; font-size:20px; }
+    nav ul { list-style:none; display:flex; gap:15px; margin:0; padding:0;}
+    nav ul li{cursor:pointer;padding:6px 12px;border-radius:8px;transition:background-color .2s;}
+    nav ul li:hover{background:#d6ecfb;}
+    .seccion{display:none;padding:20px;}
+    .activo{display:block;}
+
+    .indicator-wrapper{display:flex;flex-wrap:wrap;gap:20px;margin-top:20px;}
+    .indicator-left{flex:1;min-width:260px;}
+    .indicator-right{flex:1;min-width:260px;display:flex;flex-direction:column;gap:20px;}
+
+    .box{background:#fff;border-radius:12px;box-shadow:0 2px 6px rgba(0,0,0,0.1);padding:15px;}
+    table{width:100%;border-collapse:collapse;}
+    th,td{padding:10px;text-align:center;border-bottom:1px solid #eee;}
+    th{background:#d6ecfb;}
+    .header-indicadores{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+    .header-indicadores h3{margin:0;color:#1a4e80;}
+    .header-indicadores span{font-size:0.9em;color:#666;}
+    canvas{max-width:100%;}
+    .chart-container h4{margin:0 0 8px 0;text-align:center;color:#1a4e80;font-weight:600;font-size:1em;}
+    .last-updated{font-size:0.85em;color:#666;margin-top:8px;text-align:right;}
   </style>
-</head>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+    body { font-family: Arial, sans-serif; margin: 0; padding: 0; }
+    .container { padding: 10px; }
+    h2 { margin-bottom: 5px; }
+    .project-info { font-size: 1.2em; margin-bottom: 10px; }
+    input.project-input { font-size: 1em; width: 300px; padding: 4px; margin-bottom: 5px; display: block; }
+    .fecha-actual { font-size: 0.9em; color: #555; margin-bottom: 10px; }
+    table { width: 100%; border-collapse: collapse; table-layout: auto; }
+    th, td { border: 1px solid #ddd; padding: 4px; text-align: left; white-space: nowrap; font-size: 0.9em; width: max-content; }
+    th { background-color: #f4f4f4; }
+    input, button, select { margin: 2px; padding: 4px; font-size: 0.9em; }
+    input[type="text"], input[type="number"] { min-width: 60px; width: auto; }
+    .btn-eliminar { background-color: red; color: white; border: none; padding: 4px; cursor: pointer; font-size: 0.9em; }
+    #modalGuardar { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; }
+    #modalGuardar .modal-content { background: #fff; padding: 20px; width: 300px; margin: 100px auto; text-align: center; }
+    #modalGuardar .modal-content button { margin: 5px; padding: 6px; }
+  </style></head>
 <body>
-  <!-- Menú de navegación -->
-  <div class="navbar">
-    <a href="#" onclick="mostrarSeccion('productos')">Lista de Productos</a>
-    <a href="#" onclick="mostrarSeccion('cotizador')">Cotizador</a>
-    <a href="#" onclick="mostrarSeccion('historial')">Historial</a>
-    <a href="#" onclick="mostrarSeccion('configuracion')">Configuración</a>
-    <a href="#" onclick="mostrarSeccion('rectificador')">Rectificador</a>
-  </div>
+<nav>
+<h1>Protam Partner Tool</h1>
+<ul>
+<li onclick="mostrar('inicio')">Inicio</li>
+<li onclick="mostrar('cotizar')">Cotizar</li>
+<li onclick="mostrar('rectificador')">Rectificador</li>
+<li onclick="mostrarProtegido('precios')">Precios Unitarios</li>
+<li onclick="mostrarProtegido('listas')">Listas</li>
+</ul>
+</nav>
+<div class="seccion" id="inicio">
+<div style="display:flex;justify-content:space-between;align-items:center;">
+<h2>Bienvenido</h2>
+<div id="fechaHoy" style="font-size:0.9em;color:#666;">jueves, 26 de junio de 2025</div>
+</div>
+<p>Usa la barra de navegación para acceder a las herramientas.</p>
+<div class="indicator-wrapper">
+<div class="indicator-left">
+<div class="box">
+<div class="header-indicadores">
+<h3>Indicadores Económicos</h3>
+<span id="fechaIndicadores">jueves, 26 de junio de 2025</span>
+</div>
+<table id="indicadores">
+<thead><tr><th>Nombre</th><th>Valor</th></tr></thead>
+<tbody><tr><td>Unidad de fomento (UF)</td><td>$39,256.61</td></tr><tr><td>Dólar observado</td><td>$936.29</td></tr><tr><td>Euro</td><td>$1,090.99</td></tr><tr><td>Unidad Tributaria Mensual (UTM)</td><td>$68,785</td></tr><tr><td>Indice de Precios al Consumidor (IPC)</td><td>$0.2</td></tr></tbody>
+</table>
+<div class="last-updated" id="ultimaActualizacion">Últ. actualización API: 26-06-2025</div>
+</div>
+<div class="box" style="margin-top:20px;">
+<h4 style="margin:0 0 8px 0;color:#1a4e80;font-weight:600;">UF próximos 5 días</h4>
+<table id="ufFutura">
+<thead><tr><th>Fecha</th><th>Valor UF</th></tr></thead>
+<tbody><tr><td>26-06-2025</td><td>$39,256.61</td></tr><tr><td>25-06-2025</td><td>$39,254</td></tr><tr><td>24-06-2025</td><td>$39,251.38</td></tr><tr><td>23-06-2025</td><td>$39,248.77</td></tr><tr><td>22-06-2025</td><td>$39,246.15</td></tr></tbody>
+</table>
+</div>
+</div>
+<div class="indicator-right">
+<div class="chart-container box">
+<h4>Dólar observado (6 meses)</h4>
+<canvas id="graficoDolar" width="960" height="480" style="display: block; box-sizing: border-box; height: 160px; width: 320px;"></canvas>
+</div>
+<div class="chart-container box">
+<h4>Euro (6 meses)</h4>
+<canvas id="graficoEuro" width="960" height="480" style="display: block; box-sizing: border-box; height: 160px; width: 320px;"></canvas>
+</div>
+</div>
+</div>
+</div>
+<script>
+function mostrar(id){document.querySelectorAll('.seccion').forEach(s=>s.classList.remove('activo'));document.getElementById(id).classList.add('activo');}
+function mostrarProtegido(id){const clave=prompt("Ingresa la contraseña:");if(clave==="6658"){mostrar(id);}else{alert("Contraseña incorrecta");}}
 
-  <!-- Sección de Productos -->
-  <div id="productos" class="container active">
-    <h2>Lista de Productos</h2>
-    <label for="filtroCategoria">Filtrar por categoría:</label>
-    <select id="filtroCategoria" onchange="filtrarProductos()">
-      <option value="todos">Todas</option>
-    </select>
+document.getElementById("fechaHoy").textContent = new Intl.DateTimeFormat('es-CL',{weekday:'long',day:'numeric',month:'long',year:'numeric'}).format(new Date());
 
-    <label for="filtroEspesor">Filtrar por espesor:</label>
-    <select id="filtroEspesor" onchange="filtrarProductos()">
-      <option value="todos">Todos</option>
-    </select>
+function formatMoney(v){return '$' + Number(v).toLocaleString();}
 
-    <input type="file" id="fileInput" accept=".xlsx, .xls">
-    <button onclick="procesarExcel()">Cargar Excel</button>
-    <button onclick="descargarExcel()">Descargar Excel</button>
-    <button onclick="descargarHTML()">Descargar HTML</button>
-    <button onclick="guardarDatos()">Guardar Productos</button>
-    <div id="listaProductos">Cargando productos...</div>
-  </div>
+fetch("https://mindicador.cl/api").then(r=>r.json()).then(d=>{
+  const ids=['uf','dolar','euro','utm','ipc'];
+  const tbody=document.querySelector("#indicadores tbody");
+  ids.forEach(id=>{
+    if(d[id]){const tr=document.createElement('tr');tr.innerHTML=`<td>${d[id].nombre}</td><td>${formatMoney(d[id].valor)}</td>`;tbody.appendChild(tr);}
+  });
+  document.getElementById("fechaIndicadores").textContent =
+     new Intl.DateTimeFormat('es-CL',{weekday:'long',day:'numeric',month:'long',year:'numeric'}).format(new Date(d.fecha));
+  document.getElementById("ultimaActualizacion").textContent =
+    "Últ. actualización API: " + new Date(d.fecha).toLocaleDateString('es-CL');
+});
 
-  <!-- Sección Cotizador (opcional) -->
-  <div id="cotizador" class="container">
-    <h2>Cotizador</h2>
-    <!-- Contenido del cotizador -->
-  </div>
+async function cargarHistorico(moneda, canvasId){
+  const res=await fetch("https://mindicador.cl/api/"+moneda);
+  const data=await res.json();
+  const serie=data.serie.slice(0,180).reverse();
+  const labels=serie.map(e=>new Date(e.fecha).toLocaleDateString('es-CL'));
+  const valores=serie.map(e=>e.valor);
+  new Chart(document.getElementById(canvasId),{
+    type:'line',
+    data:{labels:labels,datasets:[{data:valores,borderWidth:2,fill:false}]},
+    options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:false}}}
+  });
+}
+cargarHistorico('dolar','graficoDolar');
+cargarHistorico('euro','graficoEuro');
 
-  <!-- Sección Historial (opcional) -->
-  <div id="historial" class="container">
-    <h2>Historial</h2>
-    <!-- Contenido del historial -->
-  </div>
+async function cargarUF(){
+  const res=await fetch("https://mindicador.cl/api/uf");
+  const data=await res.json();
+  const dias=data.serie.slice(0,5);
+  const tbody=document.querySelector("#ufFutura tbody");
+  dias.forEach(d=>{
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${new Date(d.fecha).toLocaleDateString('es-CL')}</td><td>${formatMoney(d.valor)}</td>`;
+    tbody.appendChild(tr);
+  });
+}
+cargarUF();
+</script>
+<div class="seccion" id="precios">
+<h2>Precios Unitarios</h2>
+<input accept=".xlsx,.xls" id="fileInput" type="file">
+<div id="tablaContainer"></div>
+<div style="margin-top:10px;">
+<button onclick="exportar('excel')">Exportar a Excel</button>
+<button onclick="exportar('pdf')">Exportar a PDF</button>
+</div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.0/xlsx.full.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script><script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const fileInput = document.getElementById('fileInput');
+      const tablaContainer = document.getElementById('tablaContainer');
+      const STORAGE_KEY = "precios_unitarios";
 
-  <!-- Sección Configuración (opcional) -->
-  <div id="configuracion" class="container">
-    <h2>Configuración</h2>
-    <!-- Contenido de configuración -->
-  </div>
+      fileInput.addEventListener('change', handleFile);
+      cargarDesdeLocalStorage();
 
-  <!-- Sección Rectificador -->
-  <div id="rectificador" class="container">
-    <h2>Rectificación</h2>
-    <!-- Área para ingresar datos del proyecto -->
-    <div class="project-info">
-      <input type="text" id="nombreProyecto" class="project-input"
-             value="nombre del proyecto"
-             onfocus="if(this.value=='nombre del proyecto') this.value='';"
-             onblur="if(this.value=='') this.value='nombre del proyecto';">
-      <input type="text" id="codigoProyecto" class="project-input"
-             value="codigo del proyecto"
-             onfocus="if(this.value=='codigo del proyecto') this.value='';"
-             onblur="if(this.value=='') this.value='codigo del proyecto';">
-    </div>
-
-    <table>
-      <tr>
-        <th>Eliminar</th>
-        <th>Elemento</th>
-        <th>Tipo</th>
-        <th>Nombre</th>
-        <th>Cantidad</th>
-        <th>Ancho (mm)</th>
-        <th>Alto (mm)</th>
-        <th>Asentamiento (mm)</th>
-        <th>m²</th>
-        <th>mL</th>
-      </tr>
-      <tbody id="tablaRectificacion"></tbody>
-    </table>
-
-    <button onclick="agregarFila()">Agregar Fila</button>
-    <button onclick="mostrarOpcionesGuardar()">Guardar Rectificación</button>
-
-    <!-- Modal para exportación -->
-    <div id="modalGuardar">
-      <div class="modal-content">
-        <h3>Guardar como:</h3>
-        <button onclick="exportarPDF()">PDF</button>
-        <button onclick="exportarExcel()">Excel</button>
-        <button onclick="exportarHTML()">HTML</button>
-        <button onclick="cerrarModalGuardar()">Cancelar</button>
-      </div>
-    </div>
-  </div>
-
-  <script>
-    /* ------------------------------------------------- */
-    /*        Funcionalidades de Productos             */
-    /* ------------------------------------------------- */
-    // Se carga la información de productos desde localStorage o se inicia en vacío.
-    let productos = JSON.parse(localStorage.getItem("productos")) || [];
-
-    // Función para cargar productos desde un JSON (para GitHub Pages) si localStorage está vacío.
-    function cargarProductosDesdeJSON() {
-      fetch("./productos.json")
-        .then(response => {
-          if (!response.ok) {
-            throw new Error("HTTP error " + response.status);
-          }
-          return response.json();
-        })
-        .then(data => {
-          productos = data;
-          localStorage.setItem("productos", JSON.stringify(productos));
-          inicializarFiltros();
-          mostrarProductos();
-        })
-        .catch(error => {
-          console.error("Error al cargar productos desde JSON:", error);
-          // Fallback: si ocurre error (404 u otro), se carga una lista predeterminada.
-          productos = [
-            { "categoria": "Default", "nombre": "Producto A", "espesor": 5, "precio": 1000 },
-            { "categoria": "Default", "nombre": "Producto B", "espesor": 6, "precio": 1500 }
-          ];
-          localStorage.setItem("productos", JSON.stringify(productos));
-          inicializarFiltros();
-          mostrarProductos();
-          document.getElementById("listaProductos").innerHTML += "<p>Se ha cargado la lista de productos predeterminada.</p>";
-        });
-    }
-
-    function inicializarFiltros() {
-      const filtroCategoria = document.getElementById("filtroCategoria");
-      const filtroEspesor = document.getElementById("filtroEspesor");
-
-      const categorias = [...new Set(productos.map(p => p.categoria))];
-      const espesores = [...new Set(productos.map(p => p.espesor).filter(e => e !== null && e !== undefined && e !== ""))];
-
-      filtroCategoria.innerHTML = '<option value="todos">Todas</option>';
-      filtroEspesor.innerHTML = '<option value="todos">Todos</option>';
-
-      categorias.forEach(categoria => {
-        const opcion = document.createElement("option");
-        opcion.value = categoria;
-        opcion.textContent = categoria;
-        filtroCategoria.appendChild(opcion);
-      });
-
-      espesores.sort((a, b) => a - b).forEach(espesor => {
-        const opcion = document.createElement("option");
-        opcion.value = espesor;
-        opcion.textContent = espesor + " mm";
-        filtroEspesor.appendChild(opcion);
-      });
-    }
-
-    function mostrarProductos() {
-      let tablaHTML = `<table>
-                        <tr>
-                          <th>Categoría</th>
-                          <th>Producto</th>
-                          <th>Espesor (mm)</th>
-                          <th>Precio</th>
-                        </tr>`;
-
-      const categoriaSeleccionada = document.getElementById("filtroCategoria").value;
-      const espesorSeleccionado   = document.getElementById("filtroEspesor").value;
-
-      const listaFiltrada = productos.filter(p =>
-        (categoriaSeleccionada === "todos" || p.categoria === categoriaSeleccionada) &&
-        (espesorSeleccionado === "todos" || p.espesor == espesorSeleccionado)
-      );
-
-      listaFiltrada.forEach(producto => {
-        const indiceReal = productos.indexOf(producto);
-        const precioValor = (producto.precio !== undefined && producto.precio !== null && producto.precio !== "") 
-                              ? Number(producto.precio) 
-                              : 0;
-        const precioMostrar = precioValor.toLocaleString("es-CL");
-        tablaHTML += `<tr>
-                        <td>${producto.categoria}</td>
-                        <td>${producto.nombre}</td>
-                        <td>${producto.espesor ? producto.espesor : "-"}</td>
-                        <td class="precio editable" onclick="editarPrecio(${indiceReal})">
-                          ${precioMostrar}
-                        </td>
-                      </tr>`;
-      });
-      tablaHTML += `</table>`;
-      document.getElementById("listaProductos").innerHTML = tablaHTML;
-    }
-
-    function editarPrecio(index) {
-      const precioActual = productos[index].precio !== undefined ? productos[index].precio : 0;
-      const nuevoPrecio = prompt("Ingresa el nuevo precio para " +
-        productos[index].nombre + " " + productos[index].espesor + "mm:", precioActual);
-      if (nuevoPrecio !== null && !isNaN(nuevoPrecio)) {
-        productos[index].precio = parseFloat(nuevoPrecio);
-        localStorage.setItem("productos", JSON.stringify(productos));
-        mostrarProductos();
-      } else {
-        alert("Por favor, ingresa un número válido.");
-      }
-    }
-
-    function descargarExcel() {
-      const hoja = XLSX.utils.json_to_sheet(productos);
-      const libro = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(libro, hoja, "Productos");
-      XLSX.writeFile(libro, "productos.xlsx");
-    }
-
-    function descargarHTML() {
-      const contenidoHTML = document.documentElement.outerHTML;
-      const blob = new Blob([contenidoHTML], { type: "text/html" });
-      const link = document.createElement("a");
-      link.href = URL.createObjectURL(blob);
-      link.download = "productos_completos.html";
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    }
-
-    function guardarDatos() {
-      localStorage.setItem("productos", JSON.stringify(productos));
-      alert("Los productos han sido guardados correctamente.");
-    }
-
-    function filtrarProductos() {
-      mostrarProductos();
-    }
-
-    // Función para procesar el archivo Excel y cargar productos.
-    function procesarExcel() {
-      const input = document.getElementById("fileInput");
-      if (!input.files || !input.files[0]) {
-        alert("Por favor, selecciona un archivo Excel.");
-        return;
-      }
-      const file = input.files[0];
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        const data = new Uint8Array(e.target.result);
-        const workbook = XLSX.read(data, { type: 'array' });
-        const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-        // Normalizamos las claves a minúsculas.
-        const excelJSON = XLSX.utils.sheet_to_json(firstSheet, { defval: "" });
-        const productosNormalizados = excelJSON.map(item => {
-          const newItem = {};
-          for (let key in item) {
-            newItem[key.trim().toLowerCase()] = item[key];
-          }
-          // Aseguramos que "categoría" y "producto" se asignan correctamente.
-          newItem.categoria = newItem["categoría"] || newItem["categoria"] || "Sin categoría";
-          newItem.nombre = newItem["producto"] || newItem["nombre"] || "Sin nombre";
-          newItem.espesor = newItem["espesor"] ? parseFloat(newItem["espesor"]) || 0 : 0;
-          newItem.precio = newItem["precio"] ? parseFloat(newItem["precio"]) || 0 : 0;
-  
-          return newItem;
-        });
-  
-        productos = productosNormalizados;
-        localStorage.setItem("productos", JSON.stringify(productos));
-        inicializarFiltros();
-        mostrarProductos();
-      };
-      reader.readAsArrayBuffer(file);
-    }
-  
-    // Inicialización de Productos:
-    // Si no hay datos en localStorage, se carga desde productos.json (útil en GitHub Pages).
-    if (productos.length === 0) {
-      cargarProductosDesdeJSON();
-    } else {
-      inicializarFiltros();
-      mostrarProductos();
-    }
-  
-    /* ------------------------------------------------- */
-    /*       Funcionalidades de Rectificador             */
-    /* ------------------------------------------------- */
-    // Se carga la información de rectificaciones desde localStorage.
-    let rectificaciones = JSON.parse(localStorage.getItem("rectificaciones")) || [];
-  
-    // Opciones para el desplegable "Tipo"
-    const opcionesTipo = [
-      "Corredera",
-      "Guillotina",
-      "Proyectante",
-      "Oscilobatiente",
-      "Ventana Fija",
-      "Baranda",
-      "Puerta/Ventana",
-      "Abatir Interior",
-      "Abatir Exterior",
-      "Ventana Pleagable",
-      "Cortina Cristal",
-      "Baranda Banquina",
-      "Baranda Botones (perforado)",
-      "Lucarnas",
-      "Shower",
-      "Espejo",
-      "Mampara",
-      "Puerta Protex"
-    ];
-  
-    function inicializarRectificacion() {
-      let categorias = [...new Set(productos.map(p => p.categoria))];
-      if (!categorias.includes("Ventana")) { categorias.push("Ventana"); }
-      categorias.sort((a, b) => a.localeCompare(b));
-      actualizarTablaRectificacion(categorias);
-    }
-  
-    function actualizarTablaRectificacion(categorias) {
-      const tabla = document.getElementById("tablaRectificacion");
-      tabla.innerHTML = "";
-  
-      rectificaciones.forEach((rectificacion, index) => {
-        const fila = document.createElement("tr");
-  
-        // Columna de eliminación
-        const celdaEliminar = document.createElement("td");
-        const botonEliminar = document.createElement("button");
-        botonEliminar.textContent = "🗑️";
-        botonEliminar.className = "btn-eliminar";
-        botonEliminar.onclick = () => eliminarFila(index);
-        celdaEliminar.appendChild(botonEliminar);
-        fila.appendChild(celdaEliminar);
-  
-        // Columna "Elemento": desplegable
-        const celdaElemento = document.createElement("td");
-        const selectElemento = document.createElement("select");
-        const defaultOptionElem = document.createElement("option");
-        defaultOptionElem.value = "";
-        defaultOptionElem.textContent = "Seleccione";
-        defaultOptionElem.style.color = "red";
-        defaultOptionElem.disabled = true;
-        if (!rectificaciones[index].elemento) { defaultOptionElem.selected = true; }
-        selectElemento.appendChild(defaultOptionElem);
-        categorias.forEach(categoria => {
-          const opcion = document.createElement("option");
-          opcion.value = categoria;
-          opcion.textContent = categoria;
-          if (categoria === rectificaciones[index].elemento) { opcion.selected = true; }
-          selectElemento.appendChild(opcion);
-        });
-        selectElemento.onchange = () => {
-          rectificaciones[index].elemento = selectElemento.value;
-          guardarRectificacion();
+      function handleFile(e) {
+        const file = e.target.files[0];
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          const data = new Uint8Array(e.target.result);
+          const workbook = XLSX.read(data, { type: "array" });
+          const sheet = workbook.Sheets[workbook.SheetNames[0]];
+          const json = XLSX.utils.sheet_to_json(sheet);
+          renderTabla(json);
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(json));
         };
-        celdaElemento.appendChild(selectElemento);
-        fila.appendChild(celdaElemento);
-  
-        // Columna "Tipo": desplegable
-        const celdaTipo = document.createElement("td");
-        const selectTipo = document.createElement("select");
-        const defaultOption = document.createElement("option");
-        defaultOption.value = "";
-        defaultOption.textContent = "Seleccione";
-        defaultOption.style.color = "red";
-        defaultOption.disabled = true;
-        if (!rectificaciones[index].tipo) { defaultOption.selected = true; }
-        selectTipo.appendChild(defaultOption);
-        const sortedTipos = opcionesTipo.slice().sort((a, b) => a.localeCompare(b));
-        sortedTipos.forEach(tipoOption => {
-          const opt = document.createElement("option");
-          opt.value = tipoOption;
-          opt.textContent = tipoOption;
-          if (tipoOption === rectificaciones[index].tipo) { opt.selected = true; }
-          selectTipo.appendChild(opt);
-        });
-        selectTipo.onchange = () => {
-          rectificaciones[index].tipo = selectTipo.value;
-          guardarRectificacion();
-        };
-        celdaTipo.appendChild(selectTipo);
-        fila.appendChild(celdaTipo);
-  
-        // Columnas "Nombre", "Cantidad", "Ancho", "Alto" y "Asentamiento" mediante inputs.
-        fila.appendChild(crearCeldaInput("text", rectificaciones[index].nombre, index, "nombre"));
-        fila.appendChild(crearCeldaInput("number", rectificaciones[index].cantidad, index, "cantidad"));
-        fila.appendChild(crearCeldaInput("number", rectificaciones[index].ancho, index, "ancho"));
-        fila.appendChild(crearCeldaInput("number", rectificaciones[index].alto, index, "alto"));
-        fila.appendChild(crearCeldaInput("number", rectificaciones[index].asentamiento, index, "asentamiento"));
-  
-        // Columna para m²
-        const celdaM2 = document.createElement("td");
-        celdaM2.id = `m2-${index}`;
-        celdaM2.textContent = calcularM2(rectificaciones[index].ancho, rectificaciones[index].alto, rectificaciones[index].asentamiento) + " m²";
-        fila.appendChild(celdaM2);
-  
-        // Columna para mL
-        const celdaML = document.createElement("td");
-        celdaML.id = `ml-${index}`;
-        celdaML.textContent = calcularML(rectificaciones[index].ancho, rectificaciones[index].alto, rectificaciones[index].asentamiento) + " m";
-        fila.appendChild(celdaML);
-  
-        tabla.appendChild(fila);
-      });
-    }
-  
-    // Función genérica para crear una celda con input.
-    function crearCeldaInput(tipo, valor, indice, propiedad) {
-      const celda = document.createElement("td");
-      const input = document.createElement("input");
-      input.type = tipo;
-      input.value = (valor !== undefined && valor !== null) ? valor : "";
-  
-      if (["ancho", "alto", "asentamiento"].includes(propiedad)) {
-        input.addEventListener("focus", function() {
-          if (input.value === "0") { input.value = ""; }
-        });
+        reader.readAsArrayBuffer(file);
       }
-  
-      input.oninput = function(event) {
-        if (["cantidad", "ancho", "alto", "asentamiento"].includes(propiedad)) {
-          rectificaciones[indice][propiedad] = parseFloat(event.target.value) || 0;
-          actualizarCalculosSinRedibujar(indice);
-        } else {
-          rectificaciones[indice][propiedad] = event.target.value;
+
+      function cargarDesdeLocalStorage() {
+        const datos = localStorage.getItem(STORAGE_KEY);
+        if (datos) {
+          renderTabla(JSON.parse(datos));
+        }
+      }
+
+      function renderTabla(data) {
+  const headers = ["categoría", "producto", "Codigo", "Espesor (mm)", 
+                   "Precio Dialum", "Precio Dellorto", "Dif", "Dif %", "Obs"];
+  const table = document.createElement("table");
+  const thead = document.createElement("thead");
+  thead.innerHTML = "<tr>" + headers.map(h => `<th>${h}</th>`).join("") + "</tr>";
+  table.appendChild(thead);
+
+  const tbody = document.createElement("tbody");
+  data.forEach(row => {
+    const dif  = calcularDiferencia(row["Precio Dialum"], row["Precio Dellorto"]);
+    const difP = calcularPorcentaje(dif, row["Precio Dialum"]);
+    const obs  = calcularObs(row["Precio Dellorto"], difP);
+    const tr   = document.createElement("tr");
+
+    tr.innerHTML = headers.map(h => {
+      let val = row[h] ?? "";
+      if (h === "Dif")   val = dif;
+      if (h === "Dif %") val = difP;
+      if (h === "Obs")   val = obs;
+
+      // Formateo de columnas numéricas según reglas
+      if (h === "Espesor (mm)" && !isNaN(val)) {
+        // Añadir unidad "mm" a espesores numéricos
+        val = Number(val) + " mm";
+      } else if (["Precio Dialum", "Precio Dellorto", "Dif", "Dif %"].includes(h)) {
+        if (!isNaN(val) && val !== "") {
+          const num = Number(val);
+          if (num === 0) {
+            val = "0";
+          } else if (Math.abs(num) > 0 && Math.abs(num) < 1) {
+            // Valor entre 0 y 1 -> porcentaje con dos decimales
+            val = (num * 100).toFixed(2) + "%";
+          } else {
+            // Valor cuyo valor absoluto >= 1 -> formatear con $
+            if (h === "Dif %") {
+              // Dif %: $ con separador de miles y dos decimales
+              val = (num < 0 ? "-$" : "$") + 
+                    Math.abs(num).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            } else {
+              // Precios Dialum/Dellorto y Dif: $ con separador de miles sin decimales
+              val = (num < 0 ? "-$" : "$") + 
+                    Math.abs(num).toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 0});
+            }
+          }
+        }
+        // Si es texto ("n/d", "A PEDIDO", etc.), se deja igual
+      }
+      return `<td>${val}</td>`;
+    }).join("");
+    tbody.appendChild(tr);
+  });
+
+  table.appendChild(tbody);
+  tablaContainer.innerHTML = "";
+  tablaContainer.appendChild(table);
+}
+
+
+      function calcularDiferencia(a, b) {
+        if (b === "n/d" || b === "A PEDIDO") return b;
+        if (!isNaN(a) && !isNaN(b)) return Number(b) - Number(a);
+        return "n/d";
+      }
+
+      function calcularPorcentaje(dif, base) {
+        if (dif === "n/d" || dif === "A PEDIDO") return dif;
+        if (!isNaN(dif) && !isNaN(base)) return (Number(dif) / Number(base)).toFixed(2);
+        return "n/d";
+      }
+
+      function calcularObs(b, difP) {
+        if (b === "n/d" || b === "A PEDIDO") return b;
+        if (!isNaN(difP)) return difP > 0 ? "Mas Caro" : "Mas Barato";
+        return "";
+      }
+
+      window.exportar = function(tipo) {
+        const tabla = document.querySelector("table");
+        if (!tabla) return alert("No hay tabla para exportar");
+        if (tipo === "excel") {
+          const wb = XLSX.utils.table_to_book(tabla);
+          XLSX.writeFile(wb, "PreciosUnitarios.xlsx");
+        } else if (tipo === "pdf") {
+          const { jsPDF } = window.jspdf;
+          const doc = new jsPDF();
+          doc.text("Precios Unitarios", 10, 10);
+          doc.autoTable({ html: tabla, startY: 20 });
+          doc.save("PreciosUnitarios.pdf");
         }
       };
-      celda.appendChild(input);
-      return celda;
-    }
-  
-    // Funciones para calcular m² y mL.
-    function calcularM2(ancho, alto, asentamiento) {
-      const a = parseFloat(ancho) || 0;
-      const h = parseFloat(alto) || 0;
-      const asen = parseFloat(asentamiento) || 0;
-      return ((a * (h + asen)) / 1000000).toFixed(2);
-    }
-  
-    function calcularML(ancho, alto, asentamiento) {
-      const a = parseFloat(ancho) || 0;
-      const h = parseFloat(alto) || 0;
-      const asen = parseFloat(asentamiento) || 0;
-      return (((a * 2) + ((h + asen) * 2)) / 1000).toFixed(2);
-    }
-  
-    // Actualiza los cálculos sin redibujar toda la tabla.
-    function actualizarCalculosSinRedibujar(index) {
-      const rectificacion = rectificaciones[index];
-      rectificacion.m2 = calcularM2(rectificacion.ancho, rectificacion.alto, rectificacion.asentamiento);
-      rectificacion.ml = calcularML(rectificacion.ancho, rectificacion.alto, rectificaciones[index].asentamiento);
-      const celdaM2 = document.getElementById(`m2-${index}`);
-      const celdaML = document.getElementById(`ml-${index}`);
-      if (celdaM2) celdaM2.textContent = rectificacion.m2 + " m²";
-      if (celdaML) celdaML.textContent = rectificacion.ml + " m";
-      guardarRectificacion();
-    }
-  
-    /* ------------------------------------------------- */
-    /*       Funcionalidades para Rectificador           */
-    /* ------------------------------------------------- */
-    // Agrega una nueva fila con valores predeterminados.
-    function agregarFila() {
-      rectificaciones.push({
-        elemento: "",
-        tipo: "",
-        nombre: "",
-        cantidad: 1,
-        ancho: 0,
-        alto: 0,
-        asentamiento: 0,
-        m2: "0.00",
-        ml: "0.00"
+    });
+  </script><div class="seccion activo" id="rectificador">
+<div class="container">
+<h2>Rectificación</h2>
+<div class="project-info">
+<input class="project-input" id="nombreProyecto" onblur="if(this.value==='') this.value='nombre del proyecto';" onfocus="if(this.value==='nombre del proyecto') this.value='';" type="text" value="nombre del proyecto">
+<input class="project-input" id="codigoProyecto" onblur="if(this.value==='') this.value='codigo del proyecto';" onfocus="if(this.value==='codigo del proyecto') this.value='';" type="text" value="codigo del proyecto">
+<div class="fecha-actual" id="fechaActual">Jueves, 26 de Junio de 2025</div>
+</div>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Elemento</th>
+<th>Tipo</th>
+<th>Nombre</th>
+<th>Cantidad</th>
+<th>Ancho (mm)</th>
+<th>Alto (mm)</th>
+<th>Asentamiento (mm)</th>
+<th>m²</th>
+<th>mL</th>
+<th>Notas</th>
+</tr>
+</thead>
+<tbody id="tablaRectificacion"><tr>
+      <td><button class="btn-eliminar" onclick="eliminarFila(0)">🗑️</button></td>
+      <td id="elemento-0"><select><option value="" disabled="">Seleccione</option><option value="Accesorios">Accesorios</option><option value="Adicionales">Adicionales</option><option value="Perforación">Perforación</option><option value="Separadores">Separadores</option><option value="Terminaciones">Terminaciones</option><option value="Ventana">Ventana</option><option value="Vidrio">Vidrio</option><option value="Otros">Otros</option></select></td>
+      <td id="tipo-0"><select><option value="" disabled="">Seleccione</option><option value="Abatir Exterior">Abatir Exterior</option><option value="Abatir Interior">Abatir Interior</option><option value="Baranda">Baranda</option><option value="Baranda Banquina">Baranda Banquina</option><option value="Baranda Botones (perforado)">Baranda Botones (perforado)</option><option value="Corredera">Corredera</option><option value="Cortina Cristal">Cortina Cristal</option><option value="Espejo">Espejo</option><option value="Guillotina">Guillotina</option><option value="Lucarnas">Lucarnas</option><option value="Mampara">Mampara</option><option value="Oscilobatiente">Oscilobatiente</option><option value="Proyectante">Proyectante</option><option value="Puerta Protex">Puerta Protex</option><option value="Puerta/Ventana">Puerta/Ventana</option><option value="Shower">Shower</option><option value="Ventana Fija">Ventana Fija</option><option value="Ventana Pleagable">Ventana Pleagable</option></select></td>
+      <td><input type="text" value="" oninput="actualizarCampo(0, &quot;nombre&quot;, this.value)"></td>
+      <td><input type="number" value="1" oninput="actualizarCampo(0, &quot;cantidad&quot;, parseFloat(this.value)||0)"></td>
+      <td><input type="number" value="0" oninput="actualizarCampo(0, &quot;ancho&quot;, parseFloat(this.value)||0)"></td>
+      <td><input type="number" value="0" oninput="actualizarCampo(0, &quot;alto&quot;, parseFloat(this.value)||0)"></td>
+      <td><input type="number" value="0" oninput="actualizarCampo(0, &quot;asentamiento&quot;, parseFloat(this.value)||0)"></td>
+      <td id="m2-0">0.00 m²</td>
+      <td id="ml-0">0.00 m</td>
+      <td><input type="text" maxlength="100" value="" oninput="actualizarCampo(0, &quot;notas&quot;, this.value)"></td>
+    </tr></tbody>
+</table>
+<button onclick="agregarFila()">Agregar Fila</button>
+<button onclick="guardarRectificacion()">Guardar Rectificación</button>
+<button onclick="mostrarOpcionesGuardar()">Exportar</button>
+<div id="modalGuardar">
+<div class="modal-content">
+<h3>Guardar como:</h3>
+<button onclick="exportarPDF()">PDF</button>
+<button onclick="exportarExcel()">Excel</button>
+<button onclick="exportarHTML()">HTML</button>
+<button onclick="cerrarModalGuardar()">Cancelar</button>
+</div>
+</div>
+</div>
+<script>
+let rectificaciones = JSON.parse(localStorage.getItem("rectificaciones")) || [];
+
+const opcionesElemento = ["Accesorios", "Adicionales", "Perforación", "Separadores", "Terminaciones", "Ventana", "Vidrio"].sort((a, b) => a.localeCompare(b)).concat("Otros");
+const opcionesTipo = [
+  "Corredera", "Guillotina", "Proyectante", "Oscilobatiente", "Ventana Fija", "Baranda", "Puerta/Ventana", "Abatir Interior",
+  "Abatir Exterior", "Ventana Pleagable", "Cortina Cristal", "Baranda Banquina", "Baranda Botones (perforado)", "Lucarnas",
+  "Shower", "Espejo", "Mampara", "Puerta Protex"
+].sort((a, b) => a.localeCompare(b));
+
+// Cargar valores guardados y formatear fecha actual
+const nombreCampo = document.getElementById("nombreProyecto");
+const codigoCampo = document.getElementById("codigoProyecto");
+nombreCampo.value = localStorage.getItem("nombreProyecto") || "nombre del proyecto";
+codigoCampo.value = localStorage.getItem("codigoProyecto") || "codigo del proyecto";
+
+function formatearFecha(fecha) {
+  const diasSemana = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
+  const meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+  const diaNombre = diasSemana[fecha.getDay()];
+  const diaNumero = String(fecha.getDate()).padStart(2, '0');
+  const mesNombre = meses[fecha.getMonth()];
+  const anio = fecha.getFullYear();
+  return `${diaNombre}, ${diaNumero} de ${mesNombre} de ${anio}`;
+}
+
+document.getElementById("fechaActual").textContent = formatearFecha(new Date());
+
+function agregarFila() {
+  rectificaciones.push({
+    elemento: "", tipo: "", nombre: "", cantidad: 1,
+    ancho: 0, alto: 0, asentamiento: 0, m2: "0.00", ml: "0.00", notas: ""
+  });
+  actualizarTabla();
+}
+
+function actualizarTabla() {
+  const tbody = document.getElementById("tablaRectificacion");
+  tbody.innerHTML = "";
+  rectificaciones.forEach((r, i) => {
+    const tr = document.createElement("tr");
+    const crearSelect = (opciones, valor, callback) => {
+      const select = document.createElement("select");
+      const defaultOption = document.createElement("option");
+      defaultOption.textContent = "Seleccione";
+      defaultOption.value = "";
+      defaultOption.disabled = true;
+      if (!valor) defaultOption.selected = true;
+      select.appendChild(defaultOption);
+      opciones.forEach(op => {
+        const option = document.createElement("option");
+        option.textContent = op;
+        option.value = op;
+        if (op === valor) option.selected = true;
+        select.appendChild(option);
       });
-      guardarRectificacion();
-      inicializarRectificacion();
-    }
+      select.onchange = e => callback(e.target.value);
+      return select;
+    };
+    tr.innerHTML = `
+      <td><button class='btn-eliminar' onclick='eliminarFila(${i})'>🗑️</button></td>
+      <td id='elemento-${i}'></td>
+      <td id='tipo-${i}'></td>
+      <td><input type='text' value='${r.nombre}' oninput='actualizarCampo(${i}, "nombre", this.value)'/></td>
+      <td><input type='number' value='${r.cantidad}' oninput='actualizarCampo(${i}, "cantidad", parseFloat(this.value)||0)'/></td>
+      <td><input type='number' value='${r.ancho}' oninput='actualizarCampo(${i}, "ancho", parseFloat(this.value)||0)'/></td>
+      <td><input type='number' value='${r.alto}' oninput='actualizarCampo(${i}, "alto", parseFloat(this.value)||0)'/></td>
+      <td><input type='number' value='${r.asentamiento}' oninput='actualizarCampo(${i}, "asentamiento", parseFloat(this.value)||0)'/></td>
+      <td id='m2-${i}'>${calcularM2(r.ancho,r.alto,r.asentamiento)} m²</td>
+      <td id='ml-${i}'>${calcularML(r.ancho,r.alto,r.asentamiento)} m</td>
+      <td><input type='text' maxlength='100' value='${r.notas}' oninput='actualizarCampo(${i}, "notas", this.value)'/></td>
+    `;
+    tbody.appendChild(tr);
+    document.getElementById(`elemento-${i}`).appendChild(crearSelect(opcionesElemento, r.elemento, v => actualizarCampo(i, "elemento", v)));
+    document.getElementById(`tipo-${i}`).appendChild(crearSelect(opcionesTipo, r.tipo, v => actualizarCampo(i, "tipo", v)));
+  });
+}
+
+function actualizarCampo(i, campo, valor) {
+  rectificaciones[i][campo] = valor;
+  if (["ancho","alto","asentamiento"].includes(campo)) {
+    document.getElementById(`m2-${i}`).textContent = calcularM2(rectificaciones[i].ancho,rectificaciones[i].alto,rectificaciones[i].asentamiento) + " m²";
+    document.getElementById(`ml-${i}`).textContent = calcularML(rectificaciones[i].ancho,rectificaciones[i].alto,rectificaciones[i].asentamiento) + " m";
+  }
+}
+
+function eliminarFila(i) {
+  rectificaciones.splice(i, 1);
+  actualizarTabla();
+}
+
+function calcularM2(ancho, alto, asentamiento) {
+  return ((ancho * (alto + asentamiento))/1000000).toFixed(2);
+}
+function calcularML(ancho, alto, asentamiento) {
+  return (((ancho*2)+((alto+asentamiento)*2))/1000).toFixed(2);
+}
+
+function guardarRectificacion() {
+  localStorage.setItem("rectificaciones", JSON.stringify(rectificaciones));
+  localStorage.setItem("nombreProyecto", nombreCampo.value);
+  localStorage.setItem("codigoProyecto", codigoCampo.value);
+  alert("Rectificación guardada correctamente.");
+}
+
+function mostrarOpcionesGuardar() {
+  document.getElementById("modalGuardar").style.display = "block";
+}
+function cerrarModalGuardar() {
+  document.getElementById("modalGuardar").style.display = "none";
+}
+
+function exportarPDF() {
+  cerrarModalGuardar();
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF('l','pt','a4');
+  const nombre = nombreCampo.value;
+  const codigo = codigoCampo.value;
+  const fecha = document.getElementById("fechaActual").textContent;
+  doc.setFontSize(12);
+  doc.text("Proyecto: " + nombre,40,30);
+  doc.text("Código: " + codigo,40,45);
+  doc.text("Fecha: " + fecha,40,60);
+  doc.text("Rectificaciones",40,80);
+  const columns=["Elemento","Tipo","Nombre","Cantidad","Ancho","Alto","Asentamiento","m²","mL","Notas"];
+  const rows=rectificaciones.map(r=>[r.elemento,r.tipo,r.nombre,r.cantidad,r.ancho,r.alto,r.asentamiento,calcularM2(r.ancho,r.alto,r.asentamiento),calcularML(r.ancho,r.alto,r.asentamiento),r.notas]);
+  doc.autoTable({ head:[columns], body:rows, startY:100 });
+  doc.save("rectificaciones.pdf");
+}
+
+function exportarExcel() {
+  cerrarModalGuardar();
+  const wb = XLSX.utils.book_new();
+  const nombre = nombreCampo.value;
+  const codigo = codigoCampo.value;
+  const fecha = document.getElementById("fechaActual").textContent;
+  const encabezado=[["Proyecto:",nombre], ["Código:",codigo],["Fecha:",fecha], [], ["Elemento","Tipo","Nombre","Cantidad","Ancho","Alto","Asentamiento","m²","mL","Notas"]];
+  const data=rectificaciones.map(r=>[r.elemento,r.tipo,r.nombre,r.cantidad,r.ancho,r.alto,r.asentamiento,calcularM2(r.ancho,r.alto,r.asentamiento),calcularML(r.ancho,r.alto,r.asentamiento),r.notas]);
+  const ws=XLSX.utils.aoa_to_sheet(encabezado.concat(data));
+  XLSX.utils.book_append_sheet(wb,ws,"Rectificaciones");
+  XLSX.writeFile(wb,"rectificaciones.xlsx");
+}
+
+function exportarHTML() {
+  cerrarModalGuardar();
+  document.querySelectorAll("input").forEach(input=>input.setAttribute("value",input.value));
+  const blob=new Blob([document.documentElement.outerHTML],{type:"text/html"});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");
+  a.href=url; a.download="rectificacion.html";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
   
-    // Elimina la fila indicada.
-    function eliminarFila(index) {
-      rectificaciones.splice(index, 1);
-      guardarRectificacion();
-      inicializarRectificacion();
-    }
-  
-    // Guarda el array "rectificaciones" en localStorage.
-    function guardarRectificacion() {
-      localStorage.setItem("rectificaciones", JSON.stringify(rectificaciones));
-    }
-  
-    // Funciones para mostrar y ocultar el modal de exportación.
-    function mostrarOpcionesGuardar() {
-      document.getElementById("modalGuardar").style.display = "block";
-    }
-  
-    function cerrarModalGuardar() {
-      document.getElementById("modalGuardar").style.display = "none";
-    }
-  
-    // Exporta a PDF usando jsPDF y autoTable.
-    function exportarPDF() {
-      cerrarModalGuardar();
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF('l', 'pt', 'a4');
-      doc.text("Rectificaciones", 40, 40);
-      const columns = ["Elemento", "Tipo", "Nombre", "Cantidad", "Ancho", "Alto", "Asentamiento", "m²", "mL"];
-      const rows = rectificaciones.map(item => [
-        item.elemento || "Seleccione",
-        item.tipo || "Seleccione",
-        item.nombre,
-        item.cantidad,
-        item.ancho,
-        item.alto,
-        item.asentamiento,
-        item.m2,
-        item.ml
-      ]);
-      doc.autoTable({
-        head: [columns],
-        body: rows,
-        startY: 60
+actualizarTabla();
+</script>
+</div><script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.2/xlsx.full.min.js"></script><script>
+let rectificaciones = JSON.parse(localStorage.getItem("rectificaciones")) || [];
+
+const opcionesElemento = ["Accesorios", "Adicionales", "Perforación", "Separadores", "Terminaciones", "Ventana", "Vidrio"].sort((a, b) => a.localeCompare(b)).concat("Otros");
+const opcionesTipo = [
+  "Corredera", "Guillotina", "Proyectante", "Oscilobatiente", "Ventana Fija", "Baranda", "Puerta/Ventana", "Abatir Interior",
+  "Abatir Exterior", "Ventana Pleagable", "Cortina Cristal", "Baranda Banquina", "Baranda Botones (perforado)", "Lucarnas",
+  "Shower", "Espejo", "Mampara", "Puerta Protex"
+].sort((a, b) => a.localeCompare(b));
+
+// Cargar valores guardados y formatear fecha actual
+const nombreCampo = document.getElementById("nombreProyecto");
+const codigoCampo = document.getElementById("codigoProyecto");
+nombreCampo.value = localStorage.getItem("nombreProyecto") || "nombre del proyecto";
+codigoCampo.value = localStorage.getItem("codigoProyecto") || "codigo del proyecto";
+
+function formatearFecha(fecha) {
+  const diasSemana = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
+  const meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+  const diaNombre = diasSemana[fecha.getDay()];
+  const diaNumero = String(fecha.getDate()).padStart(2, '0');
+  const mesNombre = meses[fecha.getMonth()];
+  const anio = fecha.getFullYear();
+  return `${diaNombre}, ${diaNumero} de ${mesNombre} de ${anio}`;
+}
+
+document.getElementById("fechaActual").textContent = formatearFecha(new Date());
+
+function agregarFila() {
+  rectificaciones.push({
+    elemento: "", tipo: "", nombre: "", cantidad: 1,
+    ancho: 0, alto: 0, asentamiento: 0, m2: "0.00", ml: "0.00", notas: ""
+  });
+  actualizarTabla();
+}
+
+function actualizarTabla() {
+  const tbody = document.getElementById("tablaRectificacion");
+  tbody.innerHTML = "";
+  rectificaciones.forEach((r, i) => {
+    const tr = document.createElement("tr");
+    const crearSelect = (opciones, valor, callback) => {
+      const select = document.createElement("select");
+      const defaultOption = document.createElement("option");
+      defaultOption.textContent = "Seleccione";
+      defaultOption.value = "";
+      defaultOption.disabled = true;
+      if (!valor) defaultOption.selected = true;
+      select.appendChild(defaultOption);
+      opciones.forEach(op => {
+        const option = document.createElement("option");
+        option.textContent = op;
+        option.value = op;
+        if (op === valor) option.selected = true;
+        select.appendChild(option);
       });
-      doc.save("rectificaciones.pdf");
-    }
+      select.onchange = e => callback(e.target.value);
+      return select;
+    };
+    tr.innerHTML = `
+      <td><button class='btn-eliminar' onclick='eliminarFila(${i})'>🗑️</button></td>
+      <td id='elemento-${i}'></td>
+      <td id='tipo-${i}'></td>
+      <td><input type='text' value='${r.nombre}' oninput='actualizarCampo(${i}, "nombre", this.value)'/></td>
+      <td><input type='number' value='${r.cantidad}' oninput='actualizarCampo(${i}, "cantidad", parseFloat(this.value)||0)'/></td>
+      <td><input type='number' value='${r.ancho}' oninput='actualizarCampo(${i}, "ancho", parseFloat(this.value)||0)'/></td>
+      <td><input type='number' value='${r.alto}' oninput='actualizarCampo(${i}, "alto", parseFloat(this.value)||0)'/></td>
+      <td><input type='number' value='${r.asentamiento}' oninput='actualizarCampo(${i}, "asentamiento", parseFloat(this.value)||0)'/></td>
+      <td id='m2-${i}'>${calcularM2(r.ancho,r.alto,r.asentamiento)} m²</td>
+      <td id='ml-${i}'>${calcularML(r.ancho,r.alto,r.asentamiento)} m</td>
+      <td><input type='text' maxlength='100' value='${r.notas}' oninput='actualizarCampo(${i}, "notas", this.value)'/></td>
+    `;
+    tbody.appendChild(tr);
+    document.getElementById(`elemento-${i}`).appendChild(crearSelect(opcionesElemento, r.elemento, v => actualizarCampo(i, "elemento", v)));
+    document.getElementById(`tipo-${i}`).appendChild(crearSelect(opcionesTipo, r.tipo, v => actualizarCampo(i, "tipo", v)));
+  });
+}
+
+function actualizarCampo(i, campo, valor) {
+  rectificaciones[i][campo] = valor;
+  if (["ancho","alto","asentamiento"].includes(campo)) {
+    document.getElementById(`m2-${i}`).textContent = calcularM2(rectificaciones[i].ancho,rectificaciones[i].alto,rectificaciones[i].asentamiento) + " m²";
+    document.getElementById(`ml-${i}`).textContent = calcularML(rectificaciones[i].ancho,rectificaciones[i].alto,rectificaciones[i].asentamiento) + " m";
+  }
+}
+
+function eliminarFila(i) {
+  rectificaciones.splice(i, 1);
+  actualizarTabla();
+}
+
+function calcularM2(ancho, alto, asentamiento) {
+  return ((ancho * (alto + asentamiento))/1000000).toFixed(2);
+}
+function calcularML(ancho, alto, asentamiento) {
+  return (((ancho*2)+((alto+asentamiento)*2))/1000).toFixed(2);
+}
+
+function guardarRectificacion() {
+  localStorage.setItem("rectificaciones", JSON.stringify(rectificaciones));
+  localStorage.setItem("nombreProyecto", nombreCampo.value);
+  localStorage.setItem("codigoProyecto", codigoCampo.value);
+  alert("Rectificación guardada correctamente.");
+}
+
+function mostrarOpcionesGuardar() {
+  document.getElementById("modalGuardar").style.display = "block";
+}
+function cerrarModalGuardar() {
+  document.getElementById("modalGuardar").style.display = "none";
+}
+
+function exportarPDF() {
+  cerrarModalGuardar();
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF('l','pt','a4');
+  const nombre = nombreCampo.value;
+  const codigo = codigoCampo.value;
+  const fecha = document.getElementById("fechaActual").textContent;
+  doc.setFontSize(12);
+  doc.text("Proyecto: " + nombre,40,30);
+  doc.text("Código: " + codigo,40,45);
+  doc.text("Fecha: " + fecha,40,60);
+  doc.text("Rectificaciones",40,80);
+  const columns=["Elemento","Tipo","Nombre","Cantidad","Ancho","Alto","Asentamiento","m²","mL","Notas"];
+  const rows=rectificaciones.map(r=>[r.elemento,r.tipo,r.nombre,r.cantidad,r.ancho,r.alto,r.asentamiento,calcularM2(r.ancho,r.alto,r.asentamiento),calcularML(r.ancho,r.alto,r.asentamiento),r.notas]);
+  doc.autoTable({ head:[columns], body:rows, startY:100 });
+  doc.save("rectificaciones.pdf");
+}
+
+function exportarExcel() {
+  cerrarModalGuardar();
+  const wb = XLSX.utils.book_new();
+  const nombre = nombreCampo.value;
+  const codigo = codigoCampo.value;
+  const fecha = document.getElementById("fechaActual").textContent;
+  const encabezado=[["Proyecto:",nombre], ["Código:",codigo],["Fecha:",fecha], [], ["Elemento","Tipo","Nombre","Cantidad","Ancho","Alto","Asentamiento","m²","mL","Notas"]];
+  const data=rectificaciones.map(r=>[r.elemento,r.tipo,r.nombre,r.cantidad,r.ancho,r.alto,r.asentamiento,calcularM2(r.ancho,r.alto,r.asentamiento),calcularML(r.ancho,r.alto,r.asentamiento),r.notas]);
+  const ws=XLSX.utils.aoa_to_sheet(encabezado.concat(data));
+  XLSX.utils.book_append_sheet(wb,ws,"Rectificaciones");
+  XLSX.writeFile(wb,"rectificaciones.xlsx");
+}
+
+function exportarHTML() {
+  cerrarModalGuardar();
+  document.querySelectorAll("input").forEach(input=>input.setAttribute("value",input.value));
+  const blob=new Blob([document.documentElement.outerHTML],{type:"text/html"});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");
+  a.href=url; a.download="rectificacion.html";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
   
-    // Exporta a Excel usando SheetJS.
-    function exportarExcel() {
-      cerrarModalGuardar();
-      const wb = XLSX.utils.book_new();
-      const ws_data = [["Elemento", "Tipo", "Nombre", "Cantidad", "Ancho", "Alto", "Asentamiento", "m²", "mL"]];
-      rectificaciones.forEach(item => {
-        ws_data.push([
-          item.elemento || "Seleccione",
-          item.tipo || "Seleccione",
-          item.nombre,
-          item.cantidad,
-          item.ancho,
-          item.alto,
-          item.asentamiento,
-          item.m2,
-          item.ml
-        ]);
-      });
-      const ws = XLSX.utils.aoa_to_sheet(ws_data);
-      XLSX.utils.book_append_sheet(wb, ws, "Rectificaciones");
-      XLSX.writeFile(wb, "rectificaciones.xlsx");
-    }
-  
-    // Exporta el HTML completo actual a un archivo HTML.
-    function exportarHTML() {
-      cerrarModalGuardar();
-      document.querySelectorAll("input").forEach(input => {
-        input.setAttribute("value", input.value);
-      });
-      const htmlCode = document.documentElement.outerHTML;
-      const blob = new Blob([htmlCode], { type: "text/html" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = "rectificacion.html";
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    }
-  
-    /* ------------------------------------------------- */
-    /*            Función de Navegación                  */
-    /* ------------------------------------------------- */
-    function mostrarSeccion(seccion) {
-      document.querySelectorAll(".container").forEach(div => div.classList.remove("active"));
-      document.getElementById(seccion).classList.add("active");
-    }
-  
-    // Inicialización de la sección Rectificador.
-    inicializarRectificacion();
-  </script>
-</body>
-</html>
+actualizarTabla();
+</script>
+
+</body></html>
