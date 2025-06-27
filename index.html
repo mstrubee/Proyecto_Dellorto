@@ -1,6 +1,6 @@
 <html lang="es"><head>
-<meta charset="utf-8">
-<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>Precios Unitarios</title>
 <style>
     body {
@@ -72,7 +72,7 @@
 <li onclick="mostrarProtegido('listas')">Listas</li>
 </ul>
 </nav>
-<div class="seccion" id="inicio">
+<div class="seccion activo" id="inicio">
 <div style="display:flex;justify-content:space-between;align-items:center;">
 <h2>Bienvenido</h2>
 <div id="fechaHoy" style="font-size:0.9em;color:#666;">jueves, 26 de junio de 2025</div>
@@ -92,7 +92,7 @@
 <div class="last-updated" id="ultimaActualizacion">Últ. actualización API: 26-06-2025</div>
 </div>
 <div class="box" style="margin-top:20px;">
-<h4 style="margin:0 0 8px 0;color:#1a4e80;font-weight:600;">UF próximos 5 días</h4>
+<h4 style="margin:0 0 8px 0;color:#1a4e80;font-weight:600;">UF 5 días</h4>
 <table id="ufFutura">
 <thead><tr><th>Fecha</th><th>Valor UF</th></tr></thead>
 <tbody><tr><td>26-06-2025</td><td>$39,256.61</td></tr><tr><td>25-06-2025</td><td>$39,254</td></tr><tr><td>24-06-2025</td><td>$39,251.38</td></tr><tr><td>23-06-2025</td><td>$39,248.77</td></tr><tr><td>22-06-2025</td><td>$39,246.15</td></tr></tbody>
@@ -102,11 +102,11 @@
 <div class="indicator-right">
 <div class="chart-container box">
 <h4>Dólar observado (6 meses)</h4>
-<canvas id="graficoDolar" width="960" height="480" style="display: block; box-sizing: border-box; height: 160px; width: 320px;"></canvas>
+<canvas height="480" id="graficoDolar" style="display: block; box-sizing: border-box; height: 160px; width: 320px;" width="960"></canvas>
 </div>
 <div class="chart-container box">
 <h4>Euro (6 meses)</h4>
-<canvas id="graficoEuro" width="960" height="480" style="display: block; box-sizing: border-box; height: 160px; width: 320px;"></canvas>
+<canvas height="480" id="graficoEuro" style="display: block; box-sizing: border-box; height: 160px; width: 320px;" width="960"></canvas>
 </div>
 </div>
 </div>
@@ -149,7 +149,20 @@ cargarHistorico('euro','graficoEuro');
 async function cargarUF(){
   const res=await fetch("https://mindicador.cl/api/uf");
   const data=await res.json();
-  const dias=data.serie.slice(0,5);
+  
+  const hoy = new Date();
+  const diasUnicos = [];
+  const fechasAgregadas = new Set();
+  for (let d of data.serie) {
+    const fecha = new Date(d.fecha);
+    const clave = fecha.toISOString().split('T')[0];
+    if (fecha >= hoy && !fechasAgregadas.has(clave)) {
+      fechasAgregadas.add(clave);
+      diasUnicos.push(d);
+    }
+    if (diasUnicos.length === 5) break;
+  }
+
   const tbody=document.querySelector("#ufFutura tbody");
   dias.forEach(d=>{
     const tr=document.createElement('tr');
@@ -161,7 +174,7 @@ cargarUF();
 </script>
 <div class="seccion" id="precios">
 <h2>Precios Unitarios</h2>
-<input accept=".xlsx,.xls" id="fileInput" type="file">
+<input accept=".xlsx,.xls" id="fileInput" type="file"/>
 <div id="tablaContainer"></div>
 <div style="margin-top:10px;">
 <button onclick="exportar('excel')">Exportar a Excel</button>
@@ -290,12 +303,12 @@ cargarUF();
         }
       };
     });
-  </script><div class="seccion activo" id="rectificador">
+  </script><div class="seccion" id="rectificador">
 <div class="container">
 <h2>Rectificación</h2>
 <div class="project-info">
-<input class="project-input" id="nombreProyecto" onblur="if(this.value==='') this.value='nombre del proyecto';" onfocus="if(this.value==='nombre del proyecto') this.value='';" type="text" value="nombre del proyecto">
-<input class="project-input" id="codigoProyecto" onblur="if(this.value==='') this.value='codigo del proyecto';" onfocus="if(this.value==='codigo del proyecto') this.value='';" type="text" value="codigo del proyecto">
+<input class="project-input" id="nombreProyecto" onblur="if(this.value==='') this.value='nombre del proyecto';" onfocus="if(this.value==='nombre del proyecto') this.value='';" type="text" value="nombre del proyecto"/>
+<input class="project-input" id="codigoProyecto" onblur="if(this.value==='') this.value='codigo del proyecto';" onfocus="if(this.value==='codigo del proyecto') this.value='';" type="text" value="codigo del proyecto"/>
 <div class="fecha-actual" id="fechaActual">Jueves, 26 de Junio de 2025</div>
 </div>
 <table>
@@ -315,18 +328,18 @@ cargarUF();
 </tr>
 </thead>
 <tbody id="tablaRectificacion"><tr>
-      <td><button class="btn-eliminar" onclick="eliminarFila(0)">🗑️</button></td>
-      <td id="elemento-0"><select><option value="" disabled="">Seleccione</option><option value="Accesorios">Accesorios</option><option value="Adicionales">Adicionales</option><option value="Perforación">Perforación</option><option value="Separadores">Separadores</option><option value="Terminaciones">Terminaciones</option><option value="Ventana">Ventana</option><option value="Vidrio">Vidrio</option><option value="Otros">Otros</option></select></td>
-      <td id="tipo-0"><select><option value="" disabled="">Seleccione</option><option value="Abatir Exterior">Abatir Exterior</option><option value="Abatir Interior">Abatir Interior</option><option value="Baranda">Baranda</option><option value="Baranda Banquina">Baranda Banquina</option><option value="Baranda Botones (perforado)">Baranda Botones (perforado)</option><option value="Corredera">Corredera</option><option value="Cortina Cristal">Cortina Cristal</option><option value="Espejo">Espejo</option><option value="Guillotina">Guillotina</option><option value="Lucarnas">Lucarnas</option><option value="Mampara">Mampara</option><option value="Oscilobatiente">Oscilobatiente</option><option value="Proyectante">Proyectante</option><option value="Puerta Protex">Puerta Protex</option><option value="Puerta/Ventana">Puerta/Ventana</option><option value="Shower">Shower</option><option value="Ventana Fija">Ventana Fija</option><option value="Ventana Pleagable">Ventana Pleagable</option></select></td>
-      <td><input type="text" value="" oninput="actualizarCampo(0, &quot;nombre&quot;, this.value)"></td>
-      <td><input type="number" value="1" oninput="actualizarCampo(0, &quot;cantidad&quot;, parseFloat(this.value)||0)"></td>
-      <td><input type="number" value="0" oninput="actualizarCampo(0, &quot;ancho&quot;, parseFloat(this.value)||0)"></td>
-      <td><input type="number" value="0" oninput="actualizarCampo(0, &quot;alto&quot;, parseFloat(this.value)||0)"></td>
-      <td><input type="number" value="0" oninput="actualizarCampo(0, &quot;asentamiento&quot;, parseFloat(this.value)||0)"></td>
-      <td id="m2-0">0.00 m²</td>
-      <td id="ml-0">0.00 m</td>
-      <td><input type="text" maxlength="100" value="" oninput="actualizarCampo(0, &quot;notas&quot;, this.value)"></td>
-    </tr></tbody>
+<td><button class="btn-eliminar" onclick="eliminarFila(0)">🗑️</button></td>
+<td id="elemento-0"><select><option disabled="" value="">Seleccione</option><option value="Accesorios">Accesorios</option><option value="Adicionales">Adicionales</option><option value="Perforación">Perforación</option><option value="Separadores">Separadores</option><option value="Terminaciones">Terminaciones</option><option value="Ventana">Ventana</option><option value="Vidrio">Vidrio</option><option value="Otros">Otros</option></select></td>
+<td id="tipo-0"><select><option disabled="" value="">Seleccione</option><option value="Abatir Exterior">Abatir Exterior</option><option value="Abatir Interior">Abatir Interior</option><option value="Baranda">Baranda</option><option value="Baranda Banquina">Baranda Banquina</option><option value="Baranda Botones (perforado)">Baranda Botones (perforado)</option><option value="Corredera">Corredera</option><option value="Cortina Cristal">Cortina Cristal</option><option value="Espejo">Espejo</option><option value="Guillotina">Guillotina</option><option value="Lucarnas">Lucarnas</option><option value="Mampara">Mampara</option><option value="Oscilobatiente">Oscilobatiente</option><option value="Proyectante">Proyectante</option><option value="Puerta Protex">Puerta Protex</option><option value="Puerta/Ventana">Puerta/Ventana</option><option value="Shower">Shower</option><option value="Ventana Fija">Ventana Fija</option><option value="Ventana Pleagable">Ventana Pleagable</option></select></td>
+<td><input oninput='actualizarCampo(0, "nombre", this.value)' type="text" value=""/></td>
+<td><input oninput='actualizarCampo(0, "cantidad", parseFloat(this.value)||0)' type="number" value="1"/></td>
+<td><input oninput='actualizarCampo(0, "ancho", parseFloat(this.value)||0)' type="number" value="0"/></td>
+<td><input oninput='actualizarCampo(0, "alto", parseFloat(this.value)||0)' type="number" value="0"/></td>
+<td><input oninput='actualizarCampo(0, "asentamiento", parseFloat(this.value)||0)' type="number" value="0"/></td>
+<td id="m2-0">0.00 m²</td>
+<td id="ml-0">0.00 m</td>
+<td><input maxlength="100" oninput='actualizarCampo(0, "notas", this.value)' type="text" value=""/></td>
+</tr></tbody>
 </table>
 <button onclick="agregarFila()">Agregar Fila</button>
 <button onclick="guardarRectificacion()">Guardar Rectificación</button>
@@ -657,5 +670,4 @@ function exportarHTML() {
   
 actualizarTabla();
 </script>
-
 </body></html>
